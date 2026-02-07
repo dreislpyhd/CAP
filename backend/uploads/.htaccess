@@ -1,0 +1,28 @@
+# Allow access to uploaded files
+<Files "*">
+    Order Allow,Deny
+    Allow from all
+</Files>
+
+# CORS headers for images
+<FilesMatch "\.(png|jpg|jpeg|gif|webp|svg)$">
+    Header set Access-Control-Allow-Origin "*"
+    Header set Access-Control-Allow-Methods "GET, POST, OPTIONS"
+    Header set Access-Control-Allow-Headers "Content-Type"
+</FilesMatch>
+
+# Set proper content types for images
+<FilesMatch "\.(png)$">
+    Header set Content-Type "image/png"
+    Header set Cache-Control "public, max-age=31536000"
+</FilesMatch>
+
+<FilesMatch "\.(jpg|jpeg)$">
+    Header set Content-Type "image/jpeg"
+    Header set Cache-Control "public, max-age=31536000"
+</FilesMatch>
+
+<FilesMatch "\.(gif)$">
+    Header set Content-Type "image/gif"
+    Header set Cache-Control "public, max-age=31536000"
+</FilesMatch>
