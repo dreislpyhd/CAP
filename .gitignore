@@ -24,3 +24,7 @@ vendor
 *.njsproj
 *.sln
 *.sw?
+
+index.html
+dist
+assets

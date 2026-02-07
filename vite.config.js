@@ -45,8 +45,10 @@ export default defineConfig({
       }
     }
   },
+  root: 'src',
+  publicDir: '../public',
   build: {
-    outDir: '.',
+    outDir: '../',
     emptyOutDir: false
   }
 });
