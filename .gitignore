@@ -25,6 +25,6 @@ vendor
 *.sln
 *.sw?
 
-index.html
+/index.html
 dist
-assets
+/assets
