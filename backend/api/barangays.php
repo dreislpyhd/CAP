@@ -4,7 +4,11 @@ error_reporting(0);
 ini_set('display_errors', 0);
 
 // Set CORS headers
-header("Access-Control-Allow-Origin: http://localhost:5173");
+$allowed_origins = ['http://localhost:5173', 'https://disaster.goserveph.com'];
+$origin = isset($_SERVER['HTTP_ORIGIN']) ? $_SERVER['HTTP_ORIGIN'] : '';
+if (in_array($origin, $allowed_origins)) {
+    header("Access-Control-Allow-Origin: " . $origin);
+}
 header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type, Accept, Cache, Pragma");
 header("Access-Control-Allow-Credentials: true");

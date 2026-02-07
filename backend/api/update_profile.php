@@ -1,5 +1,9 @@
 <?php
-header('Access-Control-Allow-Origin: http://localhost:5173');
+$allowed_origins = ['http://localhost:5173', 'https://disaster.goserveph.com'];
+$origin = isset($_SERVER['HTTP_ORIGIN']) ? $_SERVER['HTTP_ORIGIN'] : '';
+if (in_array($origin, $allowed_origins)) {
+    header("Access-Control-Allow-Origin: " . $origin);
+}
 header('Access-Control-Allow-Methods: POST, PUT, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type, Authorization');
 header('Access-Control-Allow-Credentials: true');
