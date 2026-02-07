@@ -12,7 +12,7 @@ function sendOTP($email, $otp) {
         $mail->Host       = 'smtp.gmail.com';
         $mail->SMTPAuth   = true;
         $mail->Username   = 'drrmgsm@gmail.com';
-        $mail->Password   = 'sxqr wlvx rvph imil';
+        $mail->Password   = 'sxqrwlvxrvphimil';
         $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
         $mail->Port       = 587;
 
