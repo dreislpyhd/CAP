@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { UserCog, Mail, Phone, MapPin, Calendar, Search, Filter, RefreshCw, Trash2, AlertTriangle } from 'lucide-react';
+import { API_BASE_URL } from '../../config';
 
 const UserManagement = () => {
     const [users, setUsers] = useState([]);
@@ -18,7 +19,7 @@ const UserManagement = () => {
         if (searchTerm.trim() === '') {
             setFilteredUsers(users);
         } else {
-            const filtered = users.filter(user => 
+            const filtered = users.filter(user =>
                 user.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                 user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
                 user.contact_number.includes(searchTerm) ||
@@ -31,9 +32,9 @@ const UserManagement = () => {
     const fetchUsers = async () => {
         setLoading(true);
         setError('');
-        
+
         try {
-            const response = await fetch('http://localhost/gsm/backend/api/users.php', {
+            const response = await fetch(`${API_BASE_URL}/api/users.php`, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
@@ -53,7 +54,7 @@ const UserManagement = () => {
             }
 
             const data = await response.json();
-            
+
             if (data.status === 'success') {
                 setUsers(data.data || []);
                 setFilteredUsers(data.data || []);
@@ -82,7 +83,7 @@ const UserManagement = () => {
 
     const handleDeleteUser = async (userId) => {
         try {
-            const response = await fetch(`http://localhost/gsm/backend/api/users.php?id=${userId}`, {
+            const response = await fetch(`${API_BASE_URL}/api/users.php?id=${userId}`, {
                 method: 'DELETE',
                 headers: {
                     'Content-Type': 'application/json',
@@ -96,7 +97,7 @@ const UserManagement = () => {
             }
 
             const data = await response.json();
-            
+
             if (data.status === 'success') {
                 // Remove user from state
                 setUsers(prevUsers => prevUsers.filter(user => user.id !== userId));
@@ -280,8 +281,8 @@ const UserManagement = () => {
                                 {users.filter(user => {
                                     const createdDate = new Date(user.created_at);
                                     const thisMonth = new Date();
-                                    return createdDate.getMonth() === thisMonth.getMonth() && 
-                                           createdDate.getFullYear() === thisMonth.getFullYear();
+                                    return createdDate.getMonth() === thisMonth.getMonth() &&
+                                        createdDate.getFullYear() === thisMonth.getFullYear();
                                 }).length}
                             </p>
                         </div>
@@ -319,12 +320,12 @@ const UserManagement = () => {
                                 </p>
                             </div>
                         </div>
-                        
+
                         <p className="text-gray-700 dark:text-gray-300 mb-6">
-                            Are you sure you want to delete <span className="font-semibold">{deleteModal.user?.full_name}</span>? 
+                            Are you sure you want to delete <span className="font-semibold">{deleteModal.user?.full_name}</span>?
                             This will permanently remove their account and all associated data.
                         </p>
-                        
+
                         <div className="flex justify-end space-x-3">
                             <button
                                 onClick={() => setDeleteModal({ show: false, user: null })}

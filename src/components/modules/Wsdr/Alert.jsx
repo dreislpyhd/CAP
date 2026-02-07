@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { API_BASE_URL } from '../../../config';
 
 function DisasterAlertAdmin() {
   const [alerts, setAlerts] = useState([]);
@@ -23,7 +24,7 @@ function DisasterAlertAdmin() {
   const [stackHistory, setStackHistory] = useState(true); // Toggle for stacking alerts
   const [notification, setNotification] = useState(null); // For custom notifications
 
-  
+
   // Fetch alerts and barangays from backend
   useEffect(() => {
     fetchAlerts();
@@ -62,13 +63,13 @@ function DisasterAlertAdmin() {
 
   const fetchBarangays = async () => {
     try {
-      const response = await fetch('http://localhost/gsm/backend/api/barangays.php');
-      
+      const response = await fetch(`${API_BASE_URL}/api/barangays.php`);
+
       if (!response.ok) {
         console.error('HTTP error:', response.status);
         return;
       }
-      
+
       const data = await response.json();
       if (data.success) {
         setBarangays(data.barangays);
@@ -84,7 +85,7 @@ function DisasterAlertAdmin() {
 
   const fetchAlerts = async () => {
     try {
-      const response = await fetch('http://localhost/gsm/backend/api/alerts.php');
+      const response = await fetch(`${API_BASE_URL}/api/alerts.php`);
       const data = await response.json();
       if (data.success) {
         setAlerts(data.alerts);
@@ -135,12 +136,12 @@ function DisasterAlertAdmin() {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
-    
+
     // Auto-generate description when type or level changes
     if (name === 'type' || name === 'level') {
       const newType = name === 'type' ? value : formData.type;
       const newLevel = name === 'level' ? value : formData.level;
-      
+
       if (newType && newLevel) {
         const autoDescription = generateDescription(newType, newLevel);
         setFormData(prev => ({ ...prev, [name]: value, description: autoDescription }));
@@ -156,11 +157,11 @@ function DisasterAlertAdmin() {
     }
 
     setLoading(true);
-    
+
     try {
-      const url = editIndex !== null ? 'http://localhost/gsm/backend/api/alerts.php' : 'http://localhost/gsm/backend/api/alerts.php';
+      const url = editIndex !== null ? `${API_BASE_URL}/api/alerts.php` : `${API_BASE_URL}/api/alerts.php`;
       const method = editIndex !== null ? 'PUT' : 'POST';
-      
+
       const payload = { ...formData };
       if (editIndex !== null) {
         payload.id = alerts[editIndex].id;
@@ -175,7 +176,7 @@ function DisasterAlertAdmin() {
       });
 
       const data = await response.json();
-      
+
       if (data.success) {
         await fetchAlerts();
         setFormData({ name: '', description: '', type: '', level: '' });
@@ -205,12 +206,12 @@ function DisasterAlertAdmin() {
   const handleModalChange = (e) => {
     const { name, value } = e.target;
     setModalFormData({ ...modalFormData, [name]: value });
-    
+
     // Auto-generate description when type or level changes in modal
     if (name === 'type' || name === 'level') {
       const newType = name === 'type' ? value : modalFormData.type;
       const newLevel = name === 'level' ? value : modalFormData.level;
-      
+
       if (newType && newLevel) {
         const autoDescription = generateDescription(newType, newLevel);
         setModalFormData(prev => ({ ...prev, [name]: value, description: autoDescription }));
@@ -225,15 +226,15 @@ function DisasterAlertAdmin() {
     }
 
     setLoading(true);
-    
+
     try {
-      const payload = { 
-        ...modalFormData, 
+      const payload = {
+        ...modalFormData,
         id: alerts[selectedAlertIndex].id,
         barangays: selectedBarangays.length > 0 ? selectedBarangays : alerts[selectedAlertIndex].barangays
       };
 
-      const response = await fetch('http://localhost/gsm/backend/api/alerts.php', {
+      const response = await fetch(`${API_BASE_URL}/api/alerts.php`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -242,7 +243,7 @@ function DisasterAlertAdmin() {
       });
 
       const data = await response.json();
-      
+
       if (data.success) {
         await fetchAlerts();
         closeAlertModal();
@@ -264,16 +265,16 @@ function DisasterAlertAdmin() {
     }
 
     setLoading(true);
-    
+
     try {
       const alertId = alerts[selectedAlertIndex].id;
-      
-      const response = await fetch(`http://localhost/gsm/backend/api/alerts.php?id=${alertId}`, {
+
+      const response = await fetch(`${API_BASE_URL}/api/alerts.php?id=${alertId}`, {
         method: 'DELETE',
       });
 
       const data = await response.json();
-      
+
       if (data.success) {
         await fetchAlerts();
         closeAlertModal();
@@ -304,7 +305,7 @@ function DisasterAlertAdmin() {
     }
 
     setLoading(true);
-    
+
     try {
       const payload = {
         ...modalFormData,
@@ -313,7 +314,7 @@ function DisasterAlertAdmin() {
         status: 'sent'
       };
 
-      const response = await fetch('http://localhost/gsm/backend/api/alerts.php', {
+      const response = await fetch(`${API_BASE_URL}/api/alerts.php`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -322,14 +323,14 @@ function DisasterAlertAdmin() {
       });
 
       const data = await response.json();
-      
+
       if (data.success) {
         const newHistoryItem = {
           ...modalFormData,
           sentTo: [...selectedBarangays],
           timestamp: new Date().toLocaleString(),
         };
-        
+
         const newHistory = [newHistoryItem, ...history];
         setHistory(newHistory);
         saveHistoryToStorage(newHistory); // Persist to localStorage
@@ -355,7 +356,7 @@ function DisasterAlertAdmin() {
     }
 
     setLoading(true);
-    
+
     try {
       const payload = {
         ...modalFormData,
@@ -364,7 +365,7 @@ function DisasterAlertAdmin() {
         status: 'sent'
       };
 
-      const response = await fetch('http://localhost/gsm/backend/api/alerts.php', {
+      const response = await fetch(`${API_BASE_URL}/api/alerts.php`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -373,14 +374,14 @@ function DisasterAlertAdmin() {
       });
 
       const data = await response.json();
-      
+
       if (data.success) {
         const newHistoryItem = {
           ...modalFormData,
           sentTo: [...barangays],
           timestamp: new Date().toLocaleString(),
         };
-        
+
         const newHistory = [newHistoryItem, ...history];
         setHistory(newHistory);
         saveHistoryToStorage(newHistory); // Persist to localStorage
@@ -501,8 +502,8 @@ function DisasterAlertAdmin() {
                         alert.level === "High"
                           ? "text-red-600 font-semibold"
                           : alert.level === "Moderate"
-                          ? "text-yellow-600 font-semibold"
-                          : "text-green-600 font-semibold";
+                            ? "text-yellow-600 font-semibold"
+                            : "text-green-600 font-semibold";
                       return (
                         <tr
                           key={idx}
@@ -532,11 +533,10 @@ function DisasterAlertAdmin() {
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => setStackHistory(!stackHistory)}
-                  className={`px-3 py-1 text-xs rounded-lg transition-colors ${
-                    stackHistory 
-                      ? 'bg-blue-600 text-white hover:bg-blue-700' 
+                  className={`px-3 py-1 text-xs rounded-lg transition-colors ${stackHistory
+                      ? 'bg-blue-600 text-white hover:bg-blue-700'
                       : 'bg-gray-300 text-gray-700 hover:bg-gray-400'
-                  }`}
+                    }`}
                 >
                   {stackHistory ? 'Stacked' : 'Expanded'}
                 </button>
@@ -562,15 +562,14 @@ function DisasterAlertAdmin() {
                     h.level === "High"
                       ? "bg-red-600 text-white"
                       : h.level === "Moderate"
-                      ? "bg-yellow-500 text-black"
-                      : "bg-green-500 text-white";
+                        ? "bg-yellow-500 text-black"
+                        : "bg-green-500 text-white";
 
                   return (
                     <li
                       key={idx}
-                      className={`p-3 border rounded-lg bg-white dark:bg-gray-700 hover:shadow-lg transition-shadow cursor-pointer ${
-                        stackHistory ? 'hover:scale-105 transform' : ''
-                      }`}
+                      className={`p-3 border rounded-lg bg-white dark:bg-gray-700 hover:shadow-lg transition-shadow cursor-pointer ${stackHistory ? 'hover:scale-105 transform' : ''
+                        }`}
                       title={h.description}
                     >
                       <div className="flex justify-between items-start">
@@ -584,17 +583,15 @@ function DisasterAlertAdmin() {
                       </h3>
                       {h.description && (
                         <p
-                          className={`text-sm text-gray-600 dark:text-gray-300 ${
-                            stackHistory ? 'truncate' : ''
-                          }`}
+                          className={`text-sm text-gray-600 dark:text-gray-300 ${stackHistory ? 'truncate' : ''
+                            }`}
                           title={h.description}
                         >
                           {h.description}
                         </p>
                       )}
-                      <p className={`text-xs text-gray-500 dark:text-gray-400 mt-1 ${
-                        stackHistory ? 'truncate' : ''
-                      }`}>
+                      <p className={`text-xs text-gray-500 dark:text-gray-400 mt-1 ${stackHistory ? 'truncate' : ''
+                        }`}>
                         Sent to: {h.sentTo.join(", ")}
                       </p>
                     </li>
@@ -739,11 +736,10 @@ function DisasterAlertAdmin() {
       {/* Custom Notification Toast */}
       {notification && (
         <div className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none">
-          <div className={`animate-in zoom-in-95 duration-300 ${
-            notification.type === 'success' 
-              ? 'bg-green-500 border-green-600' 
+          <div className={`animate-in zoom-in-95 duration-300 ${notification.type === 'success'
+              ? 'bg-green-500 border-green-600'
               : 'bg-red-500 border-red-600'
-          } text-white px-8 py-6 rounded-xl shadow-2xl border-2 flex items-center gap-4 backdrop-blur-sm pointer-events-auto max-w-md`}>
+            } text-white px-8 py-6 rounded-xl shadow-2xl border-2 flex items-center gap-4 backdrop-blur-sm pointer-events-auto max-w-md`}>
             <div className="flex-shrink-0">
               {notification.type === 'success' ? (
                 <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">

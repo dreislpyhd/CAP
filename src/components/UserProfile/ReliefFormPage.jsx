@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useCallback, useReducer } from 'react';
 import { ClipboardList, Check, X, CheckCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { API_BASE_URL } from '../../config';
 
 const ReliefFormPage = () => {
   const navigate = useNavigate();
-  
+
   // Reducer for managing localStorage-related state
   const localStorageReducer = (state, action) => {
     switch (action.type) {
@@ -40,10 +41,10 @@ const ReliefFormPage = () => {
   });
 
   const { applicationStatus, isFormLocked, submittedContactNumber } = localStorageState;
-  
+
   // List of all 188 barangays for the dropdown
   const barangays = Array.from({ length: 188 }, (_, i) => `Barangay ${i + 1}`);
-  
+
   const [formData, setFormData] = useState({
     name: '',
     age: '',
@@ -69,12 +70,12 @@ const ReliefFormPage = () => {
     const savedStatus = localStorage.getItem('reliefApplicationStatus');
     const savedContact = localStorage.getItem('reliefContactNumber');
     const savedLock = localStorage.getItem('reliefFormLocked');
-    
+
     console.log('Saved data:', { savedStatus, savedContact, savedLock });
-    
+
     // Prepare updates object
     const updates = {};
-    
+
     if (savedStatus) {
       try {
         const parsedStatus = JSON.parse(savedStatus);
@@ -84,17 +85,17 @@ const ReliefFormPage = () => {
         console.error('Error parsing saved status:', e);
       }
     }
-    
+
     if (savedContact) {
       console.log('Setting contact number:', savedContact);
       updates.submittedContactNumber = savedContact;
     }
-    
+
     if (savedLock === 'true') {
       console.log('Setting form lock to true');
       updates.isFormLocked = true;
     }
-    
+
     // Apply all updates at once using reducer
     if (Object.keys(updates).length > 0) {
       dispatch({ type: 'LOAD_FROM_STORAGE', payload: updates });
@@ -126,7 +127,7 @@ const ReliefFormPage = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    
+
     // Special handling for contact number field
     if (name === 'contact_number') {
       // Only allow numbers and limit to 11 digits
@@ -140,7 +141,7 @@ const ReliefFormPage = () => {
 
     setFormData(prev => ({
       ...prev,
-      [name]: name === 'family_size' || name === 'age' 
+      [name]: name === 'family_size' || name === 'age'
         ? value === '' ? '' : parseInt(value) || ''
         : value
     }));
@@ -148,12 +149,12 @@ const ReliefFormPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     // Reset previous errors and status
     setError('');
     setStatus('');
     setIsSubmitting(true);
-    
+
     // Validate required fields
     const requiredFields = {
       name: 'Full Name',
@@ -161,11 +162,11 @@ const ReliefFormPage = () => {
       address: 'Address',
       barangay: 'Barangay'
     };
-    
+
     const missingFields = Object.entries(requiredFields)
       .filter(([field]) => !formData[field])
       .map(([_, label]) => label);
-      
+
     if (missingFields.length > 0) {
       setError(`Please fill in the following required fields: ${missingFields.join(', ')}`);
       setIsSubmitting(false);
@@ -184,11 +185,11 @@ const ReliefFormPage = () => {
       setIsSubmitting(false);
       return;
     }
-    
+
     try {
       // Get user data from localStorage
       const userData = JSON.parse(localStorage.getItem('user') || '{}');
-      
+
       const submissionData = {
         name: formData.name.trim(),
         age: formData.age || null,
@@ -207,9 +208,9 @@ const ReliefFormPage = () => {
 
       console.log('Submitting data:', submissionData);
 
-      const endpoint = 'http://localhost/gsm/backend/api/rgd/evacuees.php';
+      const endpoint = `${API_BASE_URL}/api/rgd/evacuees.php`;
       console.log('Attempting to connect to:', endpoint);
-      
+
       const response = await fetch(endpoint, {
         method: 'POST',
         headers: {
@@ -229,7 +230,7 @@ const ReliefFormPage = () => {
       }
 
       const responseData = await response.json();
-      
+
       if (!response.ok) {
         const errorMsg = responseData.message || responseData.error || `Server returned status ${response.status}`;
         console.error('Server error:', { status: response.status, error: errorMsg });
@@ -245,20 +246,20 @@ const ReliefFormPage = () => {
 
       // Success
       setShowSuccessModal(true);
-      
+
       // Store the contact number for status checking before resetting form
       dispatch({ type: 'SET_CONTACT_NUMBER', payload: formData.contact_number.trim() });
-      
+
       // Lock form and set application status
       dispatch({ type: 'SET_FORM_LOCKED', payload: true });
-      dispatch({ 
-        type: 'SET_APPLICATION_STATUS', 
+      dispatch({
+        type: 'SET_APPLICATION_STATUS',
         payload: {
           status: 'Pending',
           submittedAt: new Date().toISOString()
         }
       });
-      
+
       // Reset form
       setFormData({
         name: '',
@@ -272,7 +273,7 @@ const ReliefFormPage = () => {
         status: 'Pending'
       });
       setAgreed(false);
-      
+
     } catch (error) {
       console.error('Submission error:', error);
       setError(error.message || 'An error occurred. Please try again.');
@@ -299,12 +300,12 @@ const ReliefFormPage = () => {
           console.error('No contact number available for status checking');
           return null;
         }
-        
+
         console.log('Checking status for contact:', submittedContactNumber);
-        
+
         // Check the actual status from the database
         // This will detect when an admin changes the status in evac.jsx
-        const response = await fetch(`http://localhost/gsm/backend/api/rgd/check-status.php?contact=${encodeURIComponent(submittedContactNumber)}`, {
+        const response = await fetch(`${API_BASE_URL}/api/rgd/check-status.php?contact=${encodeURIComponent(submittedContactNumber)}`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
@@ -312,35 +313,35 @@ const ReliefFormPage = () => {
           },
           credentials: 'include'
         });
-        
+
         console.log('Status check response status:', response.status);
-        
+
         if (response.ok) {
           const data = await response.json();
           console.log('Status check response data:', data);
-          
+
           if (data.success && data.status !== applicationStatus.status) {
             // Status has changed from admin action
             console.log('Status changed from', applicationStatus.status, 'to', data.status);
-            
+
             const newStatus = {
               ...applicationStatus,
               status: data.status,
               updatedAt: data.updated_at || new Date().toISOString()
             };
-            
-            dispatch({ 
-              type: 'SET_APPLICATION_STATUS', 
+
+            dispatch({
+              type: 'SET_APPLICATION_STATUS',
               payload: newStatus
             });
-            
+
             // Update localStorage with the new status
             localStorage.setItem('reliefApplicationStatus', JSON.stringify(newStatus));
           }
         } else {
           console.error('Status check failed:', response.status, response.statusText);
         }
-        
+
       } catch (error) {
         console.error('Error checking application status:', error);
       }
@@ -353,7 +354,7 @@ const ReliefFormPage = () => {
     const interval = setInterval(() => {
       checkStatus();
     }, 10000);
-    
+
     return () => {
       clearInterval(interval);
     };
@@ -365,16 +366,15 @@ const ReliefFormPage = () => {
         <ClipboardList className="h-6 w-6 mr-2 text-yellow-600" />
         Relief Request Form
       </h1>
-      
+
       {/* Application Status Display - Always visible when form is locked */}
       {isFormLocked && (
-        <div className={`mb-6 p-6 rounded-lg border-2 shadow-lg ${
-          applicationStatus?.status === 'Approved' 
+        <div className={`mb-6 p-6 rounded-lg border-2 shadow-lg ${applicationStatus?.status === 'Approved'
             ? 'bg-green-50 border-green-300 text-green-800'
             : applicationStatus?.status === 'Declined'
-            ? 'bg-red-50 border-red-300 text-red-800'
-            : 'bg-yellow-50 border-yellow-300 text-yellow-800'
-        }`}>
+              ? 'bg-red-50 border-red-300 text-red-800'
+              : 'bg-yellow-50 border-yellow-300 text-yellow-800'
+          }`}>
           <div className="flex items-center mb-3">
             <CheckCircle className="w-6 h-6 mr-3" />
             <h2 className="text-xl font-bold">
@@ -382,11 +382,11 @@ const ReliefFormPage = () => {
             </h2>
           </div>
           <p className="text-base mb-4">
-            {applicationStatus?.status === 'Approved' 
+            {applicationStatus?.status === 'Approved'
               ? 'Your relief request has been approved. You can now submit a new application if needed.'
               : applicationStatus?.status === 'Declined'
-              ? 'Your relief request has been declined. You can now submit a new application if needed.'
-              : 'Your application is currently being processed. Please wait for admin approval.'
+                ? 'Your relief request has been declined. You can now submit a new application if needed.'
+                : 'Your application is currently being processed. Please wait for admin approval.'
             }
           </p>
           {applicationStatus?.submittedAt && (
@@ -401,7 +401,7 @@ const ReliefFormPage = () => {
                 localStorage.removeItem('reliefApplicationStatus');
                 localStorage.removeItem('reliefFormLocked');
                 localStorage.removeItem('reliefContactNumber');
-                
+
                 dispatch({ type: 'SET_FORM_LOCKED', payload: false });
                 dispatch({ type: 'SET_APPLICATION_STATUS', payload: null });
                 dispatch({ type: 'SET_CONTACT_NUMBER', payload: '' });
@@ -425,7 +425,7 @@ const ReliefFormPage = () => {
           ) : null}
         </div>
       )}
-      
+
       {error && (
         <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-md">
           {error}
@@ -436,26 +436,26 @@ const ReliefFormPage = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
-              <input 
-                type="text" 
-                className="w-full p-2 border rounded-md focus:ring-2 focus:ring-green-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed" 
-                name="name" 
-                value={formData.name} 
-                onChange={handleChange} 
-                placeholder="Enter your full name" 
+              <input
+                type="text"
+                className="w-full p-2 border rounded-md focus:ring-2 focus:ring-green-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
+                name="name"
+                value={formData.name}
+                onChange={handleChange}
+                placeholder="Enter your full name"
                 required
                 disabled={isFormLocked}
               />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Age</label>
-              <input 
-                type="number" 
-                className="w-full p-2 border rounded-md focus:ring-2 focus:ring-green-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed" 
-                name="age" 
-                value={formData.age} 
-                onChange={handleChange} 
-                placeholder="Enter your age" 
+              <input
+                type="number"
+                className="w-full p-2 border rounded-md focus:ring-2 focus:ring-green-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
+                name="age"
+                value={formData.age}
+                onChange={handleChange}
+                placeholder="Enter your age"
                 min="0"
                 disabled={isFormLocked}
               />
@@ -463,10 +463,10 @@ const ReliefFormPage = () => {
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Gender</label>
-            <select 
-              className="w-full p-2 border rounded-md focus:ring-2 focus:ring-green-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed" 
-              name="gender" 
-              value={formData.gender} 
+            <select
+              className="w-full p-2 border rounded-md focus:ring-2 focus:ring-green-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
+              name="gender"
+              value={formData.gender}
               onChange={handleChange}
               disabled={isFormLocked}
             >
@@ -482,17 +482,16 @@ const ReliefFormPage = () => {
                 <span className="text-red-500 text-xs ml-1">(Must be 11 digits)</span>
               )}
             </label>
-            <input 
-              type="tel" 
-              className={`w-full p-2 border rounded-md focus:ring-2 focus:ring-green-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed ${
-                formData.contact_number && formData.contact_number.length !== 11 
-                  ? 'border-red-500' 
+            <input
+              type="tel"
+              className={`w-full p-2 border rounded-md focus:ring-2 focus:ring-green-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed ${formData.contact_number && formData.contact_number.length !== 11
+                  ? 'border-red-500'
                   : 'border-gray-300'
-              }`} 
-              name="contact_number" 
-              value={formData.contact_number} 
-              onChange={handleChange} 
-              placeholder="09XXXXXXXXX" 
+                }`}
+              name="contact_number"
+              value={formData.contact_number}
+              onChange={handleChange}
+              placeholder="09XXXXXXXXX"
               required
               inputMode="numeric"
               pattern="[0-9]*"
@@ -506,12 +505,12 @@ const ReliefFormPage = () => {
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Address</label>
-            <textarea 
-              className="w-full p-2 border rounded-md focus:ring-2 focus:ring-green-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed" 
-              rows="3" 
-              name="address" 
-              value={formData.address} 
-              onChange={handleChange} 
+            <textarea
+              className="w-full p-2 border rounded-md focus:ring-2 focus:ring-green-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
+              rows="3"
+              name="address"
+              value={formData.address}
+              onChange={handleChange}
               placeholder="Enter your full address"
               required
               disabled={isFormLocked}
@@ -519,10 +518,10 @@ const ReliefFormPage = () => {
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Barangay</label>
-            <select 
-              className="w-full p-2 border rounded-md focus:ring-2 focus:ring-green-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed" 
-              name="barangay" 
-              value={formData.barangay} 
+            <select
+              className="w-full p-2 border rounded-md focus:ring-2 focus:ring-green-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
+              name="barangay"
+              value={formData.barangay}
               onChange={handleChange}
               required
               disabled={isFormLocked}
@@ -535,22 +534,22 @@ const ReliefFormPage = () => {
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Family Size</label>
-            <input 
-              type="number" 
-              className="w-24 p-2 border rounded-md focus:ring-2 focus:ring-green-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed" 
-              name="family_size" 
-              value={formData.family_size} 
-              onChange={handleChange} 
-              min="1" 
+            <input
+              type="number"
+              className="w-24 p-2 border rounded-md focus:ring-2 focus:ring-green-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
+              name="family_size"
+              value={formData.family_size}
+              onChange={handleChange}
+              min="1"
               disabled={isFormLocked}
             />
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Zone</label>
-            <select 
-              className="w-full p-2 border rounded-md focus:ring-2 focus:ring-green-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed" 
-              name="zone" 
-              value={formData.zone} 
+            <select
+              className="w-full p-2 border rounded-md focus:ring-2 focus:ring-green-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
+              name="zone"
+              value={formData.zone}
               onChange={handleChange}
               disabled={isFormLocked}
             >
@@ -604,7 +603,7 @@ const ReliefFormPage = () => {
               </div>
             )}
           </div>
-          <button 
+          <button
             type="submit"
             className="mt-4 bg-green-600 text-white px-6 py-2 rounded-md hover:bg-green-700 transition-colors disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
             disabled={isSubmitting || (formData.contact_number && formData.contact_number.length !== 11) || !agreed || isFormLocked}
@@ -631,11 +630,11 @@ const ReliefFormPage = () => {
                 </p>
               </div>
             </div>
-            
+
             <p className="text-gray-700 mb-6">
               Thank you for submitting your relief request. Your application is now being processed. You will be contacted through your provided contact number for updates regarding your application status.
             </p>
-            
+
             <div className="flex justify-end space-x-3">
               <button
                 onClick={() => {

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { AlertTriangle, Upload, X, Clock, MapPin, CheckCircle, RefreshCw, Search, Filter } from 'lucide-react';
+import { API_BASE_URL } from '../../config';
 
 const IncidentReportPage = () => {
   const [incidentType, setIncidentType] = useState('');
@@ -10,17 +11,17 @@ const IncidentReportPage = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [agreed, setAgreed] = useState(false); // For agreement checkbox
-  
+
   // AI Template states
   const [template, setTemplate] = useState('');
   const [templateTips, setTemplateTips] = useState('');
   const [showTemplate, setShowTemplate] = useState(false);
   const [language, setLanguage] = useState('tl'); // 'tl' for Tagalog, 'en' for English
-  
+
   // AI Summary states
   const [showSummary, setShowSummary] = useState(false);
   const [summaryData, setSummaryData] = useState({});
-  
+
   // States for incident table
   const [incidents, setIncidents] = useState([]);
   const [isLoadingIncidents, setIsLoadingIncidents] = useState(true);
@@ -49,16 +50,16 @@ const IncidentReportPage = () => {
     else if (t === 'security') s += 7;
     else if (t === 'environmental') s += 5;
     else if (t === 'wildlife') s += 3;
-    const critical = ['explosion','collapsed','unconscious','not breathing','gunshot','weapon','armed','wildfire','flash flood','chemical','toxic','gas leak','landslide','mudslide','stampede','severe'];
-    const high = ['injury','bleeding','heavy smoke','structure','bridge','highway','power outage','electrical','strong','major','violent','attack','assault','robbery','kidnapping','fire'];
-    const moderate = ['minor','small','smoke','road blocked','traffic','property damage','tree down','overflow','rising water'];
+    const critical = ['explosion', 'collapsed', 'unconscious', 'not breathing', 'gunshot', 'weapon', 'armed', 'wildfire', 'flash flood', 'chemical', 'toxic', 'gas leak', 'landslide', 'mudslide', 'stampede', 'severe'];
+    const high = ['injury', 'bleeding', 'heavy smoke', 'structure', 'bridge', 'highway', 'power outage', 'electrical', 'strong', 'major', 'violent', 'attack', 'assault', 'robbery', 'kidnapping', 'fire'];
+    const moderate = ['minor', 'small', 'smoke', 'road blocked', 'traffic', 'property damage', 'tree down', 'overflow', 'rising water'];
     critical.forEach(k => { if (d.includes(k)) s += 6; });
     high.forEach(k => { if (d.includes(k)) s += 3; });
     moderate.forEach(k => { if (d.includes(k)) s += 2; });
-    const sensitive = ['school','hospital','clinic','bridge','market','mall','church','residential','apartment','condominium','barangay hall'];
+    const sensitive = ['school', 'hospital', 'clinic', 'bridge', 'market', 'mall', 'church', 'residential', 'apartment', 'condominium', 'barangay hall'];
     sensitive.forEach(k => { if (l.includes(k)) s += 2; });
-    const peopleWords = ['people','persons','families','houses','homes','students','patients','workers','crowd'];
-    const nums = (d.match(/\d+/g) || []).map(n => parseInt(n,10)).filter(n => !isNaN(n));
+    const peopleWords = ['people', 'persons', 'families', 'houses', 'homes', 'students', 'patients', 'workers', 'crowd'];
+    const nums = (d.match(/\d+/g) || []).map(n => parseInt(n, 10)).filter(n => !isNaN(n));
     const hasPeopleWord = peopleWords.some(w => d.includes(w));
     if (nums.length) {
       const maxN = Math.max(...nums);
@@ -150,7 +151,7 @@ const IncidentReportPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     // Debug: Log form values
     console.log('Form values:', {
       incidentType,
@@ -166,7 +167,7 @@ const IncidentReportPage = () => {
       setError(errorMsg);
       return;
     }
-    
+
     // Validate agreement checkbox
     if (!agreed) {
       const errorMsg = 'Please agree to the terms and conditions before submitting';
@@ -174,7 +175,7 @@ const IncidentReportPage = () => {
       setError(errorMsg);
       return;
     }
-    
+
     const formData = new FormData();
     formData.append('incidentType', incidentType);
     formData.append('location', location);
@@ -197,7 +198,7 @@ const IncidentReportPage = () => {
       setIsSubmitting(true);
       setError('');
 
-      const response = await fetch('http://localhost/gsm/backend/api/incidents.php', {
+      const response = await fetch(`${API_BASE_URL}/api/incidents.php`, {
         method: 'POST',
         body: formData,
         // Don't set Content-Type header - let the browser set it with the correct boundary
@@ -208,13 +209,13 @@ const IncidentReportPage = () => {
       });
 
       const responseData = await response.json();
-      
+
       if (!response.ok) {
         throw new Error(responseData.message || `Server responded with status ${response.status}`);
       }
-      
+
       console.log('Server response:', responseData);
-      
+
       // Reset form on success
       setIncidentType('');
       setDescription('');
@@ -222,11 +223,11 @@ const IncidentReportPage = () => {
       setFiles([]);
       setAgreed(false); // Reset agreement checkbox
       setIsSubmitted(true);
-      
+
       setTimeout(() => {
         setIsSubmitted(false);
       }, 5000);
-      
+
     } catch (err) {
       console.error('Error submitting incident:', {
         error: err,
@@ -244,8 +245,8 @@ const IncidentReportPage = () => {
     try {
       setIsLoadingIncidents(true);
       setIncidentsError('');
-      
-      const response = await fetch('http://localhost/gsm/backend/api/incidents.php', {
+
+      const response = await fetch(`${API_BASE_URL}/api/incidents.php`, {
         method: 'GET',
         headers: {
           'Accept': 'application/json',
@@ -284,7 +285,7 @@ const IncidentReportPage = () => {
     const interval = setInterval(() => {
       fetchIncidents();
     }, 10000); // Check every 10 seconds
-    
+
     return () => clearInterval(interval);
   }, []);
 
@@ -326,19 +327,19 @@ const IncidentReportPage = () => {
 
   // Helper functions
   const formatDate = (dateString) => {
-    const options = { 
-      year: 'numeric', 
-      month: 'short', 
+    const options = {
+      year: 'numeric',
+      month: 'short',
       day: 'numeric',
-      hour: '2-digit', 
-      minute: '2-digit' 
+      hour: '2-digit',
+      minute: '2-digit'
     };
     return new Date(dateString).toLocaleString(undefined, options);
   };
 
   const getStatusBadge = (status) => {
     const baseClasses = 'px-3 py-1 rounded-full text-xs font-medium flex items-center w-fit';
-    
+
     switch (status) {
       case 'Pending':
         return (
@@ -376,10 +377,10 @@ const IncidentReportPage = () => {
     const type = e.target.value;
     setIncidentType(type);
     validateField('incidentType', type);
-    
+
     if (type) {
       try {
-        const res = await fetch(`http://localhost/gsm/backend/api/templates.php?type=${type}`);
+        const res = await fetch(`${API_BASE_URL}/api/templates.php?type=${type}`);
         const data = await res.json();
         setTemplate(data[`template_${language}`] || data.template || '');
         setTemplateTips(data[`tips_${language}`] || data.tips || '');
@@ -399,7 +400,7 @@ const IncidentReportPage = () => {
     setLanguage(newLanguage);
     if (incidentType) {
       try {
-        const res = await fetch(`http://localhost/gsm/backend/api/templates.php?type=${incidentType}`);
+        const res = await fetch(`${API_BASE_URL}/api/templates.php?type=${incidentType}`);
         const data = await res.json();
         setTemplate(data[`template_${newLanguage}`] || data.template || '');
         setTemplateTips(data[`tips_${newLanguage}`] || data.tips || '');
@@ -417,7 +418,7 @@ const IncidentReportPage = () => {
       return;
     }
     try {
-      const res = await fetch('http://localhost/gsm/backend/api/confirm_summary.php', {
+      const res = await fetch(`${API_BASE_URL}/api/confirm_summary.php`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -450,7 +451,7 @@ const IncidentReportPage = () => {
         <AlertTriangle className="h-6 w-6 mr-2 text-red-600" />
         Incident Report
       </h1>
-      
+
       {/* Incident Report Form */}
       <div className="bg-white rounded-lg shadow p-6 mb-8">
         {isSubmitted ? (
@@ -463,7 +464,7 @@ const IncidentReportPage = () => {
             {/* Existing form fields */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Incident Type</label>
-              <select 
+              <select
                 value={incidentType}
                 onChange={handleIncidentTypeChange}
                 className="w-full p-2 border rounded-md"
@@ -479,7 +480,7 @@ const IncidentReportPage = () => {
                 <option value="wildlife">Wildlife Sighting</option>
               </select>
             </div>
-            
+
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Severity Level</label>
               <select
@@ -503,7 +504,7 @@ const IncidentReportPage = () => {
                 <p className="mt-1 text-xs text-red-600">{fieldErrors.severity}</p>
               ) : null}
             </div>
-            
+
             {/* AI Template Helper */}
             {showTemplate && template && (
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
@@ -550,18 +551,18 @@ const IncidentReportPage = () => {
                 )}
               </div>
             )}
-            
+
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Location</label>
-              <input 
-                type="text" 
+              <input
+                type="text"
                 value={location}
                 onChange={(e) => {
                   setLocation(e.target.value);
                   validateField('location', e.target.value);
                 }}
                 onBlur={(e) => validateField('location', e.target.value)}
-                className="w-full p-2 border rounded-md" 
+                className="w-full p-2 border rounded-md"
                 placeholder="Enter incident location"
                 required
               />
@@ -569,18 +570,18 @@ const IncidentReportPage = () => {
                 <p className="mt-1 text-xs text-red-600">{fieldErrors.location}</p>
               ) : null}
             </div>
-            
+
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
-              <textarea 
+              <textarea
                 value={description}
                 onChange={(e) => {
                   setDescription(e.target.value);
                   validateField('description', e.target.value);
                 }}
                 onBlur={(e) => validateField('description', e.target.value)}
-                className="w-full p-2 border rounded-md" 
-                rows="4" 
+                className="w-full p-2 border rounded-md"
+                rows="4"
                 placeholder="Please provide details about the incident"
                 required
               ></textarea>
@@ -669,7 +670,7 @@ const IncidentReportPage = () => {
                     className="h-4 w-4 text-red-600 rounded border-gray-300 focus:ring-red-500"
                   />
                   <label htmlFor="agreement-checkbox" className="ml-2 block text-sm text-gray-700">
-                    I certify that the information provided is true and accurate to the best of my knowledge. 
+                    I certify that the information provided is true and accurate to the best of my knowledge.
                     I understand that providing false information may result in legal consequences.
                   </label>
                 </div>
@@ -677,7 +678,7 @@ const IncidentReportPage = () => {
             </div>
 
             <div className="pt-2">
-              <button 
+              <button
                 type="button"
                 onClick={getSummary}
                 className={`bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors flex items-center justify-center min-w-32 ${isSubmitting || !agreed || !files.length ? 'opacity-75 cursor-not-allowed' : ''}`}
@@ -758,7 +759,7 @@ const IncidentReportPage = () => {
                 />
               </div>
             </div>
-            
+
             <div className="flex items-center gap-2">
               <Filter className="h-4 w-4 text-gray-400" />
               <select

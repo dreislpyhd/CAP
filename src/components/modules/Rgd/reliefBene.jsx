@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { API_BASE_URL } from '../../../config';
 
 function Reliefbeneficiary() {
   const [beneficiaries, setBeneficiaries] = useState([]);
@@ -13,8 +14,8 @@ function Reliefbeneficiary() {
     setLoading(true);
     setError(null);
     try {
-      const apiUrl = 'http://localhost/gsm/backend/api/rgd/evacuees.php';
-      
+      const apiUrl = `${API_BASE_URL}/api/rgd/evacuees.php`;
+
       const response = await fetch(apiUrl, {
         method: 'GET',
         headers: {
@@ -23,23 +24,23 @@ function Reliefbeneficiary() {
         },
         credentials: 'include'
       });
-      
+
       const responseText = await response.text();
       let data = {};
-      
+
       try {
         data = responseText ? JSON.parse(responseText) : {};
       } catch (e) {
         throw new Error('Invalid server response');
       }
-      
+
       if (!response.ok) {
         throw new Error(data.message || `Server error (${response.status})`);
       }
-      
+
       if (data.success) {
         // Filter only approved beneficiaries
-        const approvedBeneficiaries = (data.data || []).filter(person => 
+        const approvedBeneficiaries = (data.data || []).filter(person =>
           person.status === 'Approved' || person.status === 'approved'
         );
         setBeneficiaries(approvedBeneficiaries);
@@ -67,16 +68,16 @@ function Reliefbeneficiary() {
   // Format date function
   const formatDate = (dateValue) => {
     if (!dateValue) return 'N/A';
-    
+
     try {
       // If it's already a Date object, use it directly
       let date = dateValue instanceof Date ? dateValue : null;
-      
+
       // If it's a string, try to parse it
       if (!date && typeof dateValue === 'string') {
         // Try parsing as ISO string first
         date = new Date(dateValue);
-        
+
         // If that fails, try parsing as timestamp
         if (isNaN(date.getTime())) {
           const timestamp = parseInt(dateValue);
@@ -85,12 +86,12 @@ function Reliefbeneficiary() {
           }
         }
       }
-      
+
       // If we still don't have a valid date, return 'N/A'
       if (!date || isNaN(date.getTime())) {
         return 'N/A';
       }
-      
+
       // Format the date
       return date.toLocaleDateString('en-US', {
         year: 'numeric',
@@ -106,9 +107,9 @@ function Reliefbeneficiary() {
   // Filter beneficiaries based on search and zone
   const filteredBeneficiaries = beneficiaries.filter(beneficiary => {
     const matchesSearch = beneficiary.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         beneficiary.address?.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesZone = zoneFilter === 'All' || 
-                       (beneficiary.zone && beneficiary.zone.toLowerCase().includes(zoneFilter.toLowerCase()));
+      beneficiary.address?.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesZone = zoneFilter === 'All' ||
+      (beneficiary.zone && beneficiary.zone.toLowerCase().includes(zoneFilter.toLowerCase()));
     return matchesSearch && matchesZone;
   });
 
@@ -220,58 +221,57 @@ function Reliefbeneficiary() {
                   </tr>
                 ) : (
                   (filteredBeneficiaries || []).map((beneficiary) => (
-                  <tr 
-                    key={beneficiary.id} 
-                    className="hover:bg-gray-50 dark:hover:bg-slate-700/50 transition-colors duration-150"
-                  >
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                        {typeof beneficiary.name === 'object' ? 'N/A' : (beneficiary.name || 'N/A')}
-                      </div>
-                    </td>
-                    <td className="px-4 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-700 dark:text-gray-300">
-                        {formatDate(
-                          (beneficiary.date_received && typeof beneficiary.date_received !== 'object') ? beneficiary.date_received :
-                          (beneficiary.date && typeof beneficiary.date !== 'object') ? beneficiary.date :
-                          (beneficiary.created_at && typeof beneficiary.created_at !== 'object') ? beneficiary.created_at :
-                          null
-                        )}
-                      </div>
-                    </td>
-                    <td className="px-4 py-4 whitespace-nowrap">
-                      <span className={`px-2.5 py-1 text-xs font-medium rounded-full ${
-                        (beneficiary.zone && typeof beneficiary.zone === 'string' && beneficiary.zone.includes('North')) || 
-                        (beneficiary.address && typeof beneficiary.address === 'string' && beneficiary.address.toLowerCase().includes('north'))
-                          ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300'
-                          : 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300'
-                      }`}>
-                        {typeof beneficiary.zone === 'string' ? 
-                          beneficiary.zone : 
-                          (beneficiary.address && typeof beneficiary.address === 'string' && beneficiary.address.toLowerCase().includes('north') ? 
-                            'North Caloocan' : 'South Caloocan')}
-                      </span>
-                    </td>
-                    <td className="px-4 py-4 text-center whitespace-nowrap">
-                      <span className="px-2.5 py-1 text-xs font-medium rounded-full bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300">
-                        {typeof beneficiary.family_members === 'object' ? '0' : (beneficiary.family_members || '0')}
-                      </span>
-                    </td>
-                    <td className="px-4 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-700 dark:text-gray-300">
-                        {typeof beneficiary.contact === 'object' ? 'N/A' : (beneficiary.contact || 'N/A')}
-                      </div>
-                    </td>
-                    <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-center">
-                      <button
-                        onClick={() => setSelected(beneficiary)}
-                        className="text-blue-600 dark:text-blue-400 hover:text-blue-900 dark:hover:text-blue-300 font-medium rounded-lg px-3 py-1.5 text-sm bg-blue-50 dark:bg-blue-900/30 hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors duration-200"
-                      >
-                        View Details
-                      </button>
-                    </td>
-                  </tr>
-                )))}
+                    <tr
+                      key={beneficiary.id}
+                      className="hover:bg-gray-50 dark:hover:bg-slate-700/50 transition-colors duration-150"
+                    >
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                          {typeof beneficiary.name === 'object' ? 'N/A' : (beneficiary.name || 'N/A')}
+                        </div>
+                      </td>
+                      <td className="px-4 py-4 whitespace-nowrap">
+                        <div className="text-sm text-gray-700 dark:text-gray-300">
+                          {formatDate(
+                            (beneficiary.date_received && typeof beneficiary.date_received !== 'object') ? beneficiary.date_received :
+                              (beneficiary.date && typeof beneficiary.date !== 'object') ? beneficiary.date :
+                                (beneficiary.created_at && typeof beneficiary.created_at !== 'object') ? beneficiary.created_at :
+                                  null
+                          )}
+                        </div>
+                      </td>
+                      <td className="px-4 py-4 whitespace-nowrap">
+                        <span className={`px-2.5 py-1 text-xs font-medium rounded-full ${(beneficiary.zone && typeof beneficiary.zone === 'string' && beneficiary.zone.includes('North')) ||
+                            (beneficiary.address && typeof beneficiary.address === 'string' && beneficiary.address.toLowerCase().includes('north'))
+                            ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300'
+                            : 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300'
+                          }`}>
+                          {typeof beneficiary.zone === 'string' ?
+                            beneficiary.zone :
+                            (beneficiary.address && typeof beneficiary.address === 'string' && beneficiary.address.toLowerCase().includes('north') ?
+                              'North Caloocan' : 'South Caloocan')}
+                        </span>
+                      </td>
+                      <td className="px-4 py-4 text-center whitespace-nowrap">
+                        <span className="px-2.5 py-1 text-xs font-medium rounded-full bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300">
+                          {typeof beneficiary.family_members === 'object' ? '0' : (beneficiary.family_members || '0')}
+                        </span>
+                      </td>
+                      <td className="px-4 py-4 whitespace-nowrap">
+                        <div className="text-sm text-gray-700 dark:text-gray-300">
+                          {typeof beneficiary.contact === 'object' ? 'N/A' : (beneficiary.contact || 'N/A')}
+                        </div>
+                      </td>
+                      <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-center">
+                        <button
+                          onClick={() => setSelected(beneficiary)}
+                          className="text-blue-600 dark:text-blue-400 hover:text-blue-900 dark:hover:text-blue-300 font-medium rounded-lg px-3 py-1.5 text-sm bg-blue-50 dark:bg-blue-900/30 hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors duration-200"
+                        >
+                          View Details
+                        </button>
+                      </td>
+                    </tr>
+                  )))}
               </tbody>
             </table>
           </div>
@@ -301,7 +301,7 @@ function Reliefbeneficiary() {
                       </svg>
                     </button>
                   </div>
-                  
+
                   <div className="mt-6">
                     <div className="bg-white dark:bg-slate-600/30 rounded-lg p-4">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -310,20 +310,20 @@ function Reliefbeneficiary() {
                             <h4 className="text-sm font-medium text-gray-500 dark:text-gray-400">Full Name</h4>
                             <p className="mt-1 text-sm text-gray-900 dark:text-gray-100">{selected.name || 'N/A'}</p>
                           </div>
-                          
+
                           <div>
                             <h4 className="text-sm font-medium text-gray-500 dark:text-gray-400">Age</h4>
                             <p className="mt-1 text-sm text-gray-900 dark:text-gray-100">{selected.age || 'N/A'}</p>
                           </div>
-                          
+
                           <div>
                             <h4 className="text-sm font-medium text-gray-500 dark:text-gray-400">Gender</h4>
                             <p className="mt-1 text-sm text-gray-900 dark:text-gray-100">
-                              {selected.gender ? 
+                              {selected.gender ?
                                 selected.gender.charAt(0).toUpperCase() + selected.gender.slice(1) : 'N/A'}
                             </p>
                           </div>
-                          
+
                           <div>
                             <h4 className="text-sm font-medium text-gray-500 dark:text-gray-400">Family Size</h4>
                             <p className="mt-1 text-sm text-gray-900 dark:text-gray-100">
@@ -331,7 +331,7 @@ function Reliefbeneficiary() {
                             </p>
                           </div>
                         </div>
-                        
+
                         <div className="space-y-4">
                           <div>
                             <h4 className="text-sm font-medium text-gray-500 dark:text-gray-400">Contact Number</h4>
@@ -339,39 +339,37 @@ function Reliefbeneficiary() {
                               {selected.contact || selected.contact_number || 'N/A'}
                             </p>
                           </div>
-                          
+
                           <div>
                             <h4 className="text-sm font-medium text-gray-500 dark:text-gray-400">Zone</h4>
-                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                              (selected.zone && selected.zone.includes('North')) || 
-                              (selected.address && selected.address.toLowerCase().includes('north'))
+                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${(selected.zone && selected.zone.includes('North')) ||
+                                (selected.address && selected.address.toLowerCase().includes('north'))
                                 ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300'
                                 : 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300'
-                            }`}>
+                              }`}>
                               {selected.zone || (selected.address && selected.address.toLowerCase().includes('north') ? 'North Caloocan' : 'South Caloocan')}
                             </span>
                           </div>
-                          
+
                           <div>
                             <h4 className="text-sm font-medium text-gray-500 dark:text-gray-400">Address</h4>
                             <p className="mt-1 text-sm text-gray-900 dark:text-gray-100">
                               {selected.address || 'N/A'}
                             </p>
                           </div>
-                          
+
                           <div>
                             <h4 className="text-sm font-medium text-gray-500 dark:text-gray-400">Status</h4>
-                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                              (selected.status === 'Approved' || selected.status === 'Active') 
+                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${(selected.status === 'Approved' || selected.status === 'Active')
                                 ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300'
                                 : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300'
-                            }`}>
+                              }`}>
                               {selected.status || 'Pending'}
                             </span>
                           </div>
                         </div>
                       </div>
-                      
+
                       {selected.date_received && (
                         <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
                           <h4 className="text-sm font-medium text-gray-500 dark:text-gray-400">Last Relief Received</h4>
@@ -389,7 +387,7 @@ function Reliefbeneficiary() {
                     </div>
                   </div>
                 </div>
-                
+
                 <div className="mt-5 sm:mt-6">
                   <button
                     type="button"
@@ -403,7 +401,7 @@ function Reliefbeneficiary() {
             </div>
           </div>
         )}
- 
+
       </div>
     </div>
   )

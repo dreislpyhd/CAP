@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { User, Mail, Lock, Save, X, Phone, MapPin, Home, Eye, EyeOff } from 'lucide-react';
+import { API_BASE_URL } from '../../config';
 
 const AccountSettingsPage = () => {
   const [formData, setFormData] = useState({
@@ -44,24 +45,24 @@ const AccountSettingsPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     // Validate form
     if (isEditing) {
       if (formData.newPassword && formData.newPassword !== formData.confirmPassword) {
         setErrorMessage("New passwords don't match");
         return;
       }
-      
+
       if (formData.newPassword && formData.newPassword.length < 8) {
         setErrorMessage("Password must be at least 8 characters long");
         return;
       }
-      
+
       try {
         setErrorMessage('');
         setSuccessMessage('');
-        
-        const response = await fetch('http://localhost/gsm/backend/api/update_profile.php', {
+
+        const response = await fetch(`${API_BASE_URL}/api/update_profile.php`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -69,9 +70,9 @@ const AccountSettingsPage = () => {
           body: JSON.stringify(formData),
           credentials: 'include' // Important for sending session cookies
         });
-        
+
         const data = await response.json();
-        
+
         if (data.status === 'success') {
           // Update local storage with new user data
           const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
@@ -83,9 +84,9 @@ const AccountSettingsPage = () => {
             barangay: data.user.barangay,
             address: data.user.address
           };
-          
+
           localStorage.setItem('user', JSON.stringify(updatedUser));
-          
+
           // Reset form data with updated values
           setFormData(prev => ({
             ...prev,
@@ -93,10 +94,10 @@ const AccountSettingsPage = () => {
             newPassword: '',
             confirmPassword: ''
           }));
-          
+
           setSuccessMessage(data.message || 'Profile updated successfully!');
           setIsEditing(false);
-          
+
           // Clear success message after 3 seconds
           setTimeout(() => setSuccessMessage(''), 3000);
         } else {
@@ -112,13 +113,13 @@ const AccountSettingsPage = () => {
   return (
     <div className="p-6 max-w-4xl mx-auto">
       <h2 className="text-2xl font-bold text-gray-800 mb-6">Account Settings</h2>
-      
+
       {successMessage && (
         <div className="mb-6 p-4 bg-green-100 text-green-700 rounded-md">
           {successMessage}
         </div>
       )}
-      
+
       {errorMessage && (
         <div className="mb-6 p-4 bg-red-100 text-red-700 rounded-md">
           {errorMessage}
@@ -136,7 +137,7 @@ const AccountSettingsPage = () => {
               <p className="text-sm text-gray-500">JPG, GIF or PNG. Max size of 2MB</p>
             </div>
           </div>
-          <button 
+          <button
             className="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors"
             onClick={() => document.getElementById('profile-upload').click()}
           >
@@ -182,7 +183,7 @@ const AccountSettingsPage = () => {
                 />
               </div>
             </div>
-            
+
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Contact Number</label>
               <div className="relative">
@@ -202,7 +203,7 @@ const AccountSettingsPage = () => {
                 />
               </div>
             </div>
-            
+
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Barangay</label>
               <div className="relative">
@@ -226,7 +227,7 @@ const AccountSettingsPage = () => {
                 </select>
               </div>
             </div>
-            
+
             <div className="md:col-span-2">
               <label className="block text-sm font-medium text-gray-700 mb-1">Complete Address</label>
               <div className="relative">

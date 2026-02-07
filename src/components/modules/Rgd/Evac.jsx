@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { MapPin, Search } from "lucide-react";
+import { API_BASE_URL } from '../../../config';
 
 export default function EvacuationResidentsAdmin() {
   const [search, setSearch] = useState("");
@@ -36,31 +37,31 @@ export default function EvacuationResidentsAdmin() {
   // Filter residents based on search, region, and status
   useEffect(() => {
     let result = [...residents];
-    
+
     // Apply search filter
     if (search) {
       const searchLower = search.toLowerCase();
-      result = result.filter(resident => 
+      result = result.filter(resident =>
         (resident.name && resident.name.toLowerCase().includes(searchLower)) ||
         (resident.address && resident.address.toLowerCase().includes(searchLower)) ||
         (resident.contact && resident.contact.includes(search))
       );
     }
-    
+
     // Apply region filter
     if (activeRegion !== 'All') {
-      result = result.filter(resident => 
+      result = result.filter(resident =>
         resident.zone === activeRegion
       );
     }
-    
+
     // Apply status filter
     if (statusFilter !== 'All') {
-      result = result.filter(resident => 
+      result = result.filter(resident =>
         resident.status === statusFilter
       );
     }
-    
+
     setFilteredResidents(result);
   }, [search, activeRegion, statusFilter, residents]);
 
@@ -69,15 +70,15 @@ export default function EvacuationResidentsAdmin() {
     fetchResidents();
   }, []);
 
-  
+
   // Function to fetch residents
   const fetchResidents = async () => {
     setIsLoading(true);
     setError(null);
     try {
       // Use full URL to match the backend endpoint
-      const apiUrl = 'http://localhost/gsm/backend/api/rgd/evacuees.php';
-      
+      const apiUrl = `${API_BASE_URL}/api/rgd/evacuees.php`;
+
       const response = await fetch(apiUrl, {
         method: 'GET',
         headers: {
@@ -86,12 +87,12 @@ export default function EvacuationResidentsAdmin() {
         },
         credentials: 'include'
       });
-      
+
       // First, get the response text to handle potential non-JSON responses
       const responseText = await response.text();
-      
+
       let data = {};
-      
+
       try {
         // Try to parse as JSON
         data = responseText ? JSON.parse(responseText) : {};
@@ -101,18 +102,18 @@ export default function EvacuationResidentsAdmin() {
         console.error('Response text:', responseText);
         throw new Error(`Server returned an invalid response (${response.status} ${response.statusText}). Please check the server logs.`);
       }
-      
+
       if (!response.ok) {
-        const errorMessage = data.message || 
-                           (response.statusText || 'Unknown error') + 
-                           (responseText ? ` (${responseText})` : '');
+        const errorMessage = data.message ||
+          (response.statusText || 'Unknown error') +
+          (responseText ? ` (${responseText})` : '');
         throw new Error(`Server error (${response.status}): ${errorMessage}`);
       }
-      
+
       if (!data || typeof data !== 'object') {
         throw new Error('Invalid server response format');
       }
-      
+
       if (data.success) {
         const residentsData = data.data || [];
         setResidents(residentsData);
@@ -138,7 +139,7 @@ export default function EvacuationResidentsAdmin() {
       alert('Please fill in Name (required field)');
       return;
     }
-    
+
     // Validate contact number
     if (!newResident.contact_number || newResident.contact_number.length !== 11 || !/^\d+$/.test(newResident.contact_number)) {
       alert('Please enter a valid 11-digit contact number');
@@ -148,25 +149,25 @@ export default function EvacuationResidentsAdmin() {
     try {
       // Create a copy of newResident to avoid modifying the state directly
       const residentData = { ...newResident };
-      
+
       // Ensure we're using the correct field names for the API
       if (residentData.family_size) {
         residentData.family_members = residentData.family_size;
         delete residentData.family_size;
       }
-      
+
       if (residentData.contact_number) {
         residentData.contact = residentData.contact_number;
         delete residentData.contact_number;
       }
 
       console.log('Sending request to API with data:', residentData);
-      
+
       // Use full URL to match the backend endpoint
-      const apiUrl = 'http://localhost/gsm/backend/api/rgd/evacuees.php';
+      const apiUrl = `${API_BASE_URL}/api/rgd/evacuees.php`;
       console.log('Sending request to:', apiUrl);
-      console.log('Expected backend URL:', 'http://localhost/gsm/backend/api/rgd/evacuees.php');
-      
+      console.log('Expected backend URL:', `${API_BASE_URL}/api/rgd/evacuees.php`);
+
       const response = await fetch(apiUrl, {
         method: 'POST',
         headers: {
@@ -180,7 +181,7 @@ export default function EvacuationResidentsAdmin() {
       // First, get the response text to handle potential non-JSON responses
       const responseText = await response.text().catch(() => 'Failed to read response text');
       let data = {};
-      
+
       try {
         // Only try to parse as JSON if there's content
         data = responseText ? JSON.parse(responseText) : {};
@@ -189,28 +190,28 @@ export default function EvacuationResidentsAdmin() {
         // If we can't parse as JSON, include the raw response in the error
         throw new Error(`Server returned an invalid response: ${response.status} ${response.statusText}\n${responseText}`);
       }
-      
+
       // Log the full response for debugging
       console.log('Server response:', { status: response.status, statusText: response.statusText, data });
-      
+
       if (!response.ok) {
-        const errorMessage = data.message || 
-                           data.error ||
-                           (response.statusText || 'Unknown error') + 
-                           (responseText ? ` (${responseText.substring(0, 200)}${responseText.length > 200 ? '...' : ''})` : '');
+        const errorMessage = data.message ||
+          data.error ||
+          (response.statusText || 'Unknown error') +
+          (responseText ? ` (${responseText.substring(0, 200)}${responseText.length > 200 ? '...' : ''})` : '');
         throw new Error(`Server error (${response.status}): ${errorMessage}`);
       }
-      
+
       if (!data || typeof data !== 'object') {
         throw new Error(`Invalid server response format. Received: ${typeof data}`);
       }
-      
+
       if (data.success === false) {
         throw new Error(data.message || data.error || 'Failed to add resident: Server returned unsuccessful response');
       }
-      
+
       console.log('Resident added:', data);
-      
+
       // Reset form
       setNewResident({
         evacuation_id: 1,
@@ -224,19 +225,19 @@ export default function EvacuationResidentsAdmin() {
         medical_needs: '',
         zone: 'South Caloocan',
         status: 'Pending',
-        });
-      
+      });
+
       // Close the modal
       setShowAddModal(false);
-      
+
       // Refresh the list
       await fetchResidents();
       alert('Resident added successfully!');
     } catch (error) {
       console.error('Error adding resident:', error);
-      if (error.message.includes('Failed to fetch') || 
-          error.message.includes('NetworkError') ||
-          error.message.includes('Network request failed')) {
+      if (error.message.includes('Failed to fetch') ||
+        error.message.includes('NetworkError') ||
+        error.message.includes('Network request failed')) {
         alert('Network Error: Unable to connect to the server. Please make sure your PHP server is running (XAMPP/WAMP) and the backend path is correct.');
       } else {
         alert(`Error: ${error.message}`);
@@ -249,22 +250,22 @@ export default function EvacuationResidentsAdmin() {
     try {
       const normalizedStatus = status.charAt(0).toUpperCase() + status.slice(1).toLowerCase();
       console.log(`Updating status for resident ${id} to: ${normalizedStatus}`);
-      
+
       // Use full URL for status update
-      const apiUrl = `http://localhost/gsm/backend/api/rgd/evacuees.php?id=${id}`;
+      const apiUrl = `${API_BASE_URL}/api/rgd/evacuees.php?id=${id}`;
       console.log('Sending status update to:', apiUrl);
-      
+
       // Get the resident data before updating
       const residentToUpdate = residents.find(r => r.id === id);
       if (!residentToUpdate) {
         throw new Error('Resident not found');
       }
-      
+
       // Prepare the update data with all required fields
       const updateData = {
         status: normalizedStatus
       };
-      
+
       // Include all required fields from the resident data
       const requiredFields = ['name', 'address', 'zone', 'contact', 'family_members'];
       requiredFields.forEach(field => {
@@ -272,7 +273,7 @@ export default function EvacuationResidentsAdmin() {
           updateData[field] = residentToUpdate[field];
         }
       });
-      
+
       // Update the status in the backend
       const response = await fetch(apiUrl, {
         method: 'PUT',
@@ -283,10 +284,10 @@ export default function EvacuationResidentsAdmin() {
         credentials: 'include',
         body: JSON.stringify(updateData)
       });
-      
+
       const responseText = await response.text();
       let data;
-      
+
       try {
         data = responseText ? JSON.parse(responseText) : {};
         console.log('Status update response:', data);
@@ -294,25 +295,25 @@ export default function EvacuationResidentsAdmin() {
         console.error('Failed to parse response as JSON:', responseText);
         throw new Error('Server returned an invalid response.');
       }
-      
+
       if (!response.ok) {
         throw new Error(data.message || `HTTP error! status: ${response.status}`);
       }
-      
+
       if (!data.success) {
         throw new Error(data.message || 'Failed to update status');
       }
-      
+
       // Refresh the residents list to ensure we have the latest data
       await fetchResidents();
-      
+
       return true;
-      
+
     } catch (error) {
       console.error('Error updating resident status:', error);
-      if (error.message.includes('Failed to fetch') || 
-          error.message.includes('NetworkError') ||
-          error.message.includes('Network request failed')) {
+      if (error.message.includes('Failed to fetch') ||
+        error.message.includes('NetworkError') ||
+        error.message.includes('Network request failed')) {
         alert('Network Error: Unable to connect to the server. Please make sure your PHP server is running.');
       } else {
         alert(`Error: ${error.message}`);
@@ -380,11 +381,10 @@ export default function EvacuationResidentsAdmin() {
             <button
               key={region}
               onClick={() => setActiveRegion(region)}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
-                activeRegion === region
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition ${activeRegion === region
                   ? "bg-blue-600 text-white"
                   : "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600"
-              }`}
+                }`}
             >
               {region}
             </button>
@@ -398,7 +398,7 @@ export default function EvacuationResidentsAdmin() {
           <div className="text-blue-600">Loading evacuee data...</div>
         </div>
       )}
-      
+
       {error && (
         <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6">
           <strong>Error:</strong> {error}
@@ -429,41 +429,41 @@ export default function EvacuationResidentsAdmin() {
               </tr>
             ) : (
               pendingList.map((r) => (
-              <tr key={r.id} className="border-b dark:border-gray-700">
-                <td className="px-4 py-2">{r.name}</td>
-                <td className="px-4 py-2">{r.age || 'N/A'}</td>
-                <td className="px-4 py-2">{r.family_members || 1}</td>
-                <td className="px-4 py-2">{r.address || 'N/A'}</td>
-                <td className="px-4 py-2">{r.zone || 'N/A'}</td>
-                <td className="px-4 py-2 text-yellow-600 font-medium">{r.status}</td>
-                <td className="px-4 py-2 flex gap-2">
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setConfirmModal({ show: true, action: 'approved', resident: r });
-                    }}
-                    className="bg-green-600 text-white px-2 py-1 rounded hover:bg-green-700"
-                  >
-                    Approve
-                  </button>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setConfirmModal({ show: true, action: 'declined', resident: r });
-                    }}
-                    className="bg-red-600 text-white px-2 py-1 rounded hover:bg-red-700"
-                  >
-                    Decline
-                  </button>
-                  <button
-                    onClick={() => setViewResident(r)}
-                    className="bg-blue-600 text-white px-2 py-1 rounded hover:bg-blue-700"
-                  >
-                    View
-                  </button>
-                </td>
-              </tr>
-            )))}
+                <tr key={r.id} className="border-b dark:border-gray-700">
+                  <td className="px-4 py-2">{r.name}</td>
+                  <td className="px-4 py-2">{r.age || 'N/A'}</td>
+                  <td className="px-4 py-2">{r.family_members || 1}</td>
+                  <td className="px-4 py-2">{r.address || 'N/A'}</td>
+                  <td className="px-4 py-2">{r.zone || 'N/A'}</td>
+                  <td className="px-4 py-2 text-yellow-600 font-medium">{r.status}</td>
+                  <td className="px-4 py-2 flex gap-2">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setConfirmModal({ show: true, action: 'approved', resident: r });
+                      }}
+                      className="bg-green-600 text-white px-2 py-1 rounded hover:bg-green-700"
+                    >
+                      Approve
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setConfirmModal({ show: true, action: 'declined', resident: r });
+                      }}
+                      className="bg-red-600 text-white px-2 py-1 rounded hover:bg-red-700"
+                    >
+                      Decline
+                    </button>
+                    <button
+                      onClick={() => setViewResident(r)}
+                      className="bg-blue-600 text-white px-2 py-1 rounded hover:bg-blue-700"
+                    >
+                      View
+                    </button>
+                  </td>
+                </tr>
+              )))}
           </tbody>
         </table>
       </div>
@@ -605,14 +605,13 @@ export default function EvacuationResidentsAdmin() {
                   </div>
                   <div className="flex justify-between items-center mt-2">
                     <span className="text-gray-600 dark:text-gray-300">Status:</span>
-                    <span 
-                      className={`px-2 py-1 rounded-full text-xs font-medium ${
-                        viewResident.status === 'Approved' || viewResident.status === 'approved' 
+                    <span
+                      className={`px-2 py-1 rounded-full text-xs font-medium ${viewResident.status === 'Approved' || viewResident.status === 'approved'
                           ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
                           : viewResident.status === 'Declined' || viewResident.status === 'declined'
                             ? 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
                             : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
-                      }`}
+                        }`}
                     >
                       {viewResident.status || 'Pending'}
                     </span>
@@ -633,7 +632,7 @@ export default function EvacuationResidentsAdmin() {
               <h3 className="text-xl font-semibold text-gray-900 dark:text-white">Add New Resident</h3>
               <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Fill in the resident's details below</p>
             </div>
-            
+
             {/* Close Button */}
             <button
               onClick={() => setShowAddModal(false)}
@@ -661,7 +660,7 @@ export default function EvacuationResidentsAdmin() {
                       required
                     />
                   </div>
-                  
+
                   <div className="space-y-1">
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Age</label>
                     <input
@@ -672,7 +671,7 @@ export default function EvacuationResidentsAdmin() {
                       className="w-full p-2.5 border rounded-md focus:ring-2 focus:ring-blue-300 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white"
                     />
                   </div>
-                  
+
                   <div className="space-y-1">
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Gender</label>
                     <select
@@ -685,7 +684,7 @@ export default function EvacuationResidentsAdmin() {
                       <option value="Other">Other</option>
                     </select>
                   </div>
-                  
+
                   <div className="space-y-1">
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Family Size</label>
                     <input
@@ -749,7 +748,7 @@ export default function EvacuationResidentsAdmin() {
                       placeholder="House #, Street, Subdivision"
                     />
                   </div>
-                  
+
                   <div className="space-y-1">
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Barangay <span className="text-red-500">*</span></label>
                     <select
@@ -766,7 +765,7 @@ export default function EvacuationResidentsAdmin() {
                       ))}
                     </select>
                   </div>
-                  
+
                 </div>
               </div>
 
@@ -815,11 +814,10 @@ export default function EvacuationResidentsAdmin() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
           <div className="bg-white dark:bg-gray-800 rounded-lg w-full max-w-md p-6 relative">
             <div className="flex items-center mb-4">
-              <div className={`w-12 h-12 rounded-full flex items-center justify-center mr-4 ${
-                confirmModal.action === 'approved' 
-                  ? 'bg-green-100' 
+              <div className={`w-12 h-12 rounded-full flex items-center justify-center mr-4 ${confirmModal.action === 'approved'
+                  ? 'bg-green-100'
                   : 'bg-red-100'
-              }`}>
+                }`}>
                 {confirmModal.action === 'approved' ? (
                   <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
@@ -839,14 +837,14 @@ export default function EvacuationResidentsAdmin() {
                 </p>
               </div>
             </div>
-            
+
             <p className="text-gray-700 dark:text-gray-300 mb-6">
-              Are you sure you want to {confirmModal.action} this resident? 
-              {confirmModal.action === 'approved' 
-                ? ' They will be added to the relief beneficiaries list.' 
+              Are you sure you want to {confirmModal.action} this resident?
+              {confirmModal.action === 'approved'
+                ? ' They will be added to the relief beneficiaries list.'
                 : ' This action cannot be undone.'}
             </p>
-            
+
             <div className="flex justify-end space-x-3">
               <button
                 onClick={() => setConfirmModal({ show: false, action: '', resident: null })}
@@ -860,17 +858,16 @@ export default function EvacuationResidentsAdmin() {
                   if (success) {
                     setConfirmModal({ show: false, action: '', resident: null });
                     // Show success message
-                    const message = confirmModal.action === 'approved' 
-                      ? 'Resident approved and added to relief beneficiaries list!' 
+                    const message = confirmModal.action === 'approved'
+                      ? 'Resident approved and added to relief beneficiaries list!'
                       : 'Resident status updated to declined.';
                     setSuccessModal({ show: true, message });
                   }
                 }}
-                className={`px-4 py-2 text-sm font-medium text-white rounded-md shadow-sm hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 ${
-                  confirmModal.action === 'approved'
+                className={`px-4 py-2 text-sm font-medium text-white rounded-md shadow-sm hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 ${confirmModal.action === 'approved'
                     ? 'bg-green-600 hover:bg-green-700 focus:ring-green-500'
                     : 'bg-red-600 hover:bg-red-700 focus:ring-red-500'
-                }`}
+                  }`}
               >
                 {confirmModal.action === 'approved' ? 'Approve' : 'Decline'}
               </button>
@@ -898,11 +895,11 @@ export default function EvacuationResidentsAdmin() {
                 </p>
               </div>
             </div>
-            
+
             <p className="text-gray-700 dark:text-gray-300 mb-6">
               {successModal.message}
             </p>
-            
+
             <div className="flex justify-end">
               <button
                 onClick={() => setSuccessModal({ show: false, message: '' })}

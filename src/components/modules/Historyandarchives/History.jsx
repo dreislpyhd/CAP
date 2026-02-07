@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  Calendar, 
-  MapPin, 
-  Users, 
-  AlertTriangle, 
-  TrendingUp, 
-  FileText, 
+import {
+  Calendar,
+  MapPin,
+  Users,
+  AlertTriangle,
+  TrendingUp,
+  FileText,
   Search,
   Filter,
   Download,
@@ -22,6 +22,7 @@ import {
   Target,
   Bell
 } from 'lucide-react';
+import { API_BASE_URL } from '../../../config';
 
 const History = () => {
   const [selectedEvent, setSelectedEvent] = useState(null);
@@ -200,7 +201,7 @@ const History = () => {
   const fetchUserRegistrations = async () => {
     setLoadingUsers(true);
     try {
-      const response = await fetch('http://localhost/gsm/backend/api/users.php', {
+      const response = await fetch(`${API_BASE_URL}/api/users.php`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -214,7 +215,7 @@ const History = () => {
       }
 
       const data = await response.json();
-      
+
       if (data.status === 'success') {
         setUserRegistrations(data.data || []);
       }
@@ -228,7 +229,7 @@ const History = () => {
   const fetchReliefSubmissions = async () => {
     setLoadingRelief(true);
     try {
-      const response = await fetch('http://localhost/gsm/backend/api/rgd/evacuees.php', {
+      const response = await fetch(`${API_BASE_URL}/api/rgd/evacuees.php`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -242,7 +243,7 @@ const History = () => {
       }
 
       const data = await response.json();
-      
+
       if (data.success) {
         setReliefSubmissions(data.data || []);
       }
@@ -256,7 +257,7 @@ const History = () => {
   const fetchIncidentReports = async () => {
     setLoadingIncidents(true);
     try {
-      const response = await fetch('http://localhost/gsm/backend/api/incidents.php', {
+      const response = await fetch(`${API_BASE_URL}/api/incidents.php`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -281,7 +282,7 @@ const History = () => {
   const fetchTrainingEvents = async () => {
     setLoadingTraining(true);
     try {
-      const response = await fetch('http://localhost/gsm/backend/api/coordination/training.php', {
+      const response = await fetch(`${API_BASE_URL}/api/coordination/training.php`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -294,7 +295,7 @@ const History = () => {
       }
 
       const data = await response.json();
-      
+
       if (data.success) {
         setTrainingEvents(data.data || []);
       }
@@ -308,7 +309,7 @@ const History = () => {
   const fetchAlerts = async () => {
     setLoadingAlerts(true);
     try {
-      const response = await fetch('http://localhost/gsm/backend/api/alerts.php', {
+      const response = await fetch(`${API_BASE_URL}/api/alerts.php`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -321,7 +322,7 @@ const History = () => {
       }
 
       const data = await response.json();
-      
+
       if (data.success) {
         setAlerts(data.alerts || []);
       }
@@ -336,8 +337,8 @@ const History = () => {
   const filteredUsers = userRegistrations
     .filter(user => {
       const matchesSearch = user.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           user.barangay.toLowerCase().includes(searchTerm.toLowerCase());
+        user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        user.barangay.toLowerCase().includes(searchTerm.toLowerCase());
       return matchesSearch;
     })
     .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
@@ -346,9 +347,9 @@ const History = () => {
   const filteredRelief = reliefSubmissions
     .filter(submission => {
       const matchesSearch = submission.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           submission.contact.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           submission.barangay.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           submission.status.toLowerCase().includes(searchTerm.toLowerCase());
+        submission.contact.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        submission.barangay.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        submission.status.toLowerCase().includes(searchTerm.toLowerCase());
       return matchesSearch;
     })
     .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
@@ -357,13 +358,13 @@ const History = () => {
   const filteredIncidents = incidentReports
     .filter(incident => {
       const matchesSearch = incident.incidentType.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           incident.location.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           incident.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           incident.status.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           (incident.reporter_name && incident.reporter_name.toLowerCase().includes(searchTerm.toLowerCase()));
-      
+        incident.location.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        incident.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        incident.status.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (incident.reporter_name && incident.reporter_name.toLowerCase().includes(searchTerm.toLowerCase()));
+
       const matchesType = incidentTypeFilter === 'all' || incident.incidentType === incidentTypeFilter;
-      
+
       return matchesSearch && matchesType;
     })
     .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
@@ -372,10 +373,10 @@ const History = () => {
   const filteredTraining = trainingEvents
     .filter(event => {
       const matchesSearch = event.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           event.location.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           event.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           event.status.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           event.date.toLowerCase().includes(searchTerm.toLowerCase());
+        event.location.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        event.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        event.status.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        event.date.toLowerCase().includes(searchTerm.toLowerCase());
       return matchesSearch;
     })
     .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
@@ -384,12 +385,12 @@ const History = () => {
   const filteredAlerts = alerts
     .filter(alert => {
       const matchesSearch = alert.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           alert.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           alert.type.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           alert.level.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           (alert.barangays && alert.barangays.some(barangay => 
-                             barangay.toLowerCase().includes(searchTerm.toLowerCase())
-                           ));
+        alert.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        alert.type.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        alert.level.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (alert.barangays && alert.barangays.some(barangay =>
+          barangay.toLowerCase().includes(searchTerm.toLowerCase())
+        ));
       return matchesSearch;
     })
     .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
@@ -414,62 +415,57 @@ const History = () => {
         <div className="flex space-x-1 mb-6 border-b border-gray-200 dark:border-gray-700">
           <button
             onClick={() => setActiveTab('registrations')}
-            className={`px-4 py-2 font-medium text-sm rounded-t-lg transition-colors ${
-              activeTab === 'registrations'
+            className={`px-4 py-2 font-medium text-sm rounded-t-lg transition-colors ${activeTab === 'registrations'
                 ? 'bg-blue-500 text-white border-b-2 border-blue-500'
                 : 'text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200'
-            }`}
+              }`}
           >
             <UserPlus className="w-4 h-4 inline mr-2" />
             User Registrations
           </button>
           <button
             onClick={() => setActiveTab('relief')}
-            className={`px-4 py-2 font-medium text-sm rounded-t-lg transition-colors ${
-              activeTab === 'relief'
+            className={`px-4 py-2 font-medium text-sm rounded-t-lg transition-colors ${activeTab === 'relief'
                 ? 'bg-blue-500 text-white border-b-2 border-blue-500'
                 : 'text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200'
-            }`}
+              }`}
           >
             <ClipboardList className="w-4 h-4 inline mr-2" />
             Relief Form Submissions
           </button>
           <button
             onClick={() => setActiveTab('incidents')}
-            className={`px-4 py-2 font-medium text-sm rounded-t-lg transition-colors ${
-              activeTab === 'incidents'
+            className={`px-4 py-2 font-medium text-sm rounded-t-lg transition-colors ${activeTab === 'incidents'
                 ? 'bg-blue-500 text-white border-b-2 border-blue-500'
                 : 'text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200'
-            }`}
+              }`}
           >
             <AlertTriangle className="w-4 h-4 inline mr-2" />
             Incident Reports
           </button>
           <button
             onClick={() => setActiveTab('training')}
-            className={`px-4 py-2 font-medium text-sm rounded-t-lg transition-colors ${
-              activeTab === 'training'
+            className={`px-4 py-2 font-medium text-sm rounded-t-lg transition-colors ${activeTab === 'training'
                 ? 'bg-blue-500 text-white border-b-2 border-blue-500'
                 : 'text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200'
-            }`}
+              }`}
           >
             <Target className="w-4 h-4 inline mr-2" />
             Training & Drill Events
           </button>
           <button
             onClick={() => setActiveTab('alerts')}
-            className={`px-4 py-2 font-medium text-sm rounded-t-lg transition-colors ${
-              activeTab === 'alerts'
+            className={`px-4 py-2 font-medium text-sm rounded-t-lg transition-colors ${activeTab === 'alerts'
                 ? 'bg-blue-500 text-white border-b-2 border-blue-500'
                 : 'text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200'
-            }`}
+              }`}
           >
             <Bell className="w-4 h-4 inline mr-2" />
             Disaster Alerts
           </button>
         </div>
 
-                {/* Search */}
+        {/* Search */}
         <div className="mb-6 space-y-4 sm:space-y-0 sm:flex sm:items-center sm:justify-between sm:gap-4">
           <div className="flex flex-col sm:flex-row gap-3">
             <div className="relative">
@@ -503,9 +499,9 @@ const History = () => {
             )}
           </div>
           <div className="text-sm text-gray-600 dark:text-slate-400">
-            {activeTab === 'registrations' 
+            {activeTab === 'registrations'
               ? `${filteredUsers.length} of ${userRegistrations.length} users`
-              : activeTab === 'relief' 
+              : activeTab === 'relief'
                 ? `${filteredRelief.length} of ${reliefSubmissions.length} submissions`
                 : activeTab === 'incidents'
                   ? `${filteredIncidents.length} of ${incidentReports.length} incidents`
@@ -620,11 +616,10 @@ const History = () => {
                           </div>
                         </div>
                         <div className="flex gap-2">
-                          <span className={`px-2 py-1 rounded text-xs font-medium ${
-                            submission.status === 'Pending' 
+                          <span className={`px-2 py-1 rounded text-xs font-medium ${submission.status === 'Pending'
                               ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
                               : 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
-                          }`}>
+                            }`}>
                             {submission.status}
                           </span>
                         </div>
@@ -690,13 +685,12 @@ const History = () => {
                           <span className="font-medium text-gray-900 dark:text-slate-200">
                             {new Date(incident.timestamp).toLocaleDateString()} - {incident.incidentType}
                           </span>
-                          <span className={`ml-2 px-2 py-1 rounded text-xs font-medium ${
-                            incident.status === 'Pending' 
+                          <span className={`ml-2 px-2 py-1 rounded text-xs font-medium ${incident.status === 'Pending'
                               ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
                               : incident.status === 'In Progress'
                                 ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
                                 : 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
-                          }`}>
+                            }`}>
                             {incident.status}
                           </span>
                         </div>
@@ -757,13 +751,12 @@ const History = () => {
                           </div>
                         </div>
                         <div className="flex gap-2">
-                          <span className={`px-2 py-1 rounded text-xs font-medium ${
-                            event.status === 'Scheduled' 
+                          <span className={`px-2 py-1 rounded text-xs font-medium ${event.status === 'Scheduled'
                               ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
                               : event.status === 'Completed'
                                 ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
                                 : 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200'
-                          }`}>
+                            }`}>
                             {event.status}
                           </span>
                         </div>
@@ -821,30 +814,27 @@ const History = () => {
                     <div className="flex-1">
                       <div className="flex items-start justify-between mb-3">
                         <div className="flex items-center gap-3">
-                          <div className={`p-2 rounded-lg ${
-                            alert.level === 'critical' ? 'bg-red-100 dark:bg-red-900' :
-                            alert.level === 'high' ? 'bg-orange-100 dark:bg-orange-900' :
-                            alert.level === 'medium' ? 'bg-yellow-100 dark:bg-yellow-900' :
-                            'bg-blue-100 dark:bg-blue-900'
-                          }`}>
-                            <Bell className={`w-5 h-5 ${
-                              alert.level === 'critical' ? 'text-red-600 dark:text-red-400' :
-                              alert.level === 'high' ? 'text-orange-600 dark:text-orange-400' :
-                              alert.level === 'medium' ? 'text-yellow-600 dark:text-yellow-400' :
-                              'text-blue-600 dark:text-blue-400'
-                            }`} />
+                          <div className={`p-2 rounded-lg ${alert.level === 'critical' ? 'bg-red-100 dark:bg-red-900' :
+                              alert.level === 'high' ? 'bg-orange-100 dark:bg-orange-900' :
+                                alert.level === 'medium' ? 'bg-yellow-100 dark:bg-yellow-900' :
+                                  'bg-blue-100 dark:bg-blue-900'
+                            }`}>
+                            <Bell className={`w-5 h-5 ${alert.level === 'critical' ? 'text-red-600 dark:text-red-400' :
+                                alert.level === 'high' ? 'text-orange-600 dark:text-orange-400' :
+                                  alert.level === 'medium' ? 'text-yellow-600 dark:text-yellow-400' :
+                                    'text-blue-600 dark:text-blue-400'
+                              }`} />
                           </div>
                           <div>
                             <h3 className="font-semibold text-lg text-gray-900 dark:text-slate-200">
                               {alert.name}
                             </h3>
                             <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-slate-400">
-                              <span className={`px-2 py-1 rounded text-xs font-medium ${
-                                alert.level === 'critical' ? 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200' :
-                                alert.level === 'high' ? 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200' :
-                                alert.level === 'medium' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200' :
-                                'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
-                              }`}>
+                              <span className={`px-2 py-1 rounded text-xs font-medium ${alert.level === 'critical' ? 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200' :
+                                  alert.level === 'high' ? 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200' :
+                                    alert.level === 'medium' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200' :
+                                      'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
+                                }`}>
                                 {alert.level.toUpperCase()}
                               </span>
                               <span>•</span>
@@ -853,13 +843,12 @@ const History = () => {
                           </div>
                         </div>
                         <div className="flex gap-2">
-                          <span className={`px-2 py-1 rounded text-xs font-medium ${
-                            alert.status === 'active' 
+                          <span className={`px-2 py-1 rounded text-xs font-medium ${alert.status === 'active'
                               ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
                               : alert.status === 'resolved'
                                 ? 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200'
                                 : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
-                          }`}>
+                            }`}>
                             {alert.status || 'draft'}
                           </span>
                         </div>
@@ -875,8 +864,8 @@ const History = () => {
                           <MapPin className="w-4 h-4 text-gray-500" />
                           <span className="text-gray-600 dark:text-slate-400">Affected Areas:</span>
                           <span className="font-medium">
-                            {alert.barangays && alert.barangays.length > 0 
-                              ? alert.barangays.join(', ') 
+                            {alert.barangays && alert.barangays.length > 0
+                              ? alert.barangays.join(', ')
                               : 'All areas'
                             }
                           </span>

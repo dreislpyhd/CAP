@@ -1,11 +1,12 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { 
-  User, LogOut, Settings, Bell, Home, ChevronDown, Clock, 
-  MapPin, Droplet, Wind, Thermometer, MessageSquare, 
-  ClipboardList, Calendar, AlertTriangle, X, CheckCircle, 
+import {
+  User, LogOut, Settings, Bell, Home, ChevronDown, Clock,
+  MapPin, Droplet, Wind, Thermometer, MessageSquare,
+  ClipboardList, Calendar, AlertTriangle, X, CheckCircle,
   AlertCircle, FileText, Target
 } from 'lucide-react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { API_BASE_URL } from '../../config';
 
 // Import module pages
 import MapPage from './MapPage';
@@ -39,7 +40,7 @@ const Homepage = ({ onLogout }) => {
   const [showNotifications, setShowNotifications] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const notificationRef = useRef(null);
-  
+
   useEffect(() => {
     const path = location.pathname.split('/')[1] || 'profile';
     let moduleFromPath = 'home';
@@ -78,7 +79,7 @@ const Homepage = ({ onLogout }) => {
     navigate(`/${route}`, { replace: true });
   };
   const renderModule = () => {
-    switch(activeModule) {
+    switch (activeModule) {
       case 'home':
         return (
           <div className="p-6">
@@ -114,28 +115,28 @@ const Homepage = ({ onLogout }) => {
               <div className="bg-white rounded-lg shadow p-6">
                 <h3 className="text-lg font-semibold text-gray-800 mb-4">Quick Actions</h3>
                 <div className="grid grid-cols-2 gap-3">
-                  <button 
+                  <button
                     onClick={() => setAndNavigate('incident')}
                     className="bg-red-100 text-red-700 p-3 rounded-md hover:bg-red-200 transition-colors flex flex-col items-center"
                   >
                     <AlertTriangle className="h-6 w-6 mb-1" />
                     <span className="text-sm">Report Incident</span>
                   </button>
-                  <button 
+                  <button
                     onClick={() => setAndNavigate('relief')}
                     className="bg-yellow-100 text-yellow-700 p-3 rounded-md hover:bg-yellow-200 transition-colors flex flex-col items-center"
                   >
                     <ClipboardList className="h-6 w-6 mb-1" />
                     <span className="text-sm">Request Relief</span>
                   </button>
-                  <button 
+                  <button
                     onClick={() => setAndNavigate('alert')}
                     className="bg-blue-100 text-blue-700 p-3 rounded-md hover:bg-blue-200 transition-colors flex flex-col items-center"
                   >
                     <Bell className="h-6 w-6 mb-1" />
                     <span className="text-sm">View Alerts</span>
                   </button>
-                  <button 
+                  <button
                     onClick={() => setAndNavigate('chatbot')}
                     className="bg-green-100 text-green-700 p-3 rounded-md hover:bg-green-200 transition-colors flex flex-col items-center"
                   >
@@ -215,17 +216,17 @@ const Homepage = ({ onLogout }) => {
     }
   });
 
- // In Homepage.jsx, update the user state initialization:
+  // In Homepage.jsx, update the user state initialization:
 
-const [user, setUser] = useState(() => {
-  const savedUser = localStorage.getItem('user');
-  return savedUser 
-    ? JSON.parse(savedUser)
-    : { name: 'Guest', email: '', role: 'guest' };
-});
+  const [user, setUser] = useState(() => {
+    const savedUser = localStorage.getItem('user');
+    return savedUser
+      ? JSON.parse(savedUser)
+      : { name: 'Guest', email: '', role: 'guest' };
+  });
 
-// And in the welcome message:
-<h3 className="text-lg font-semibold text-gray-800">Welcome, {user.full_name || 'User'}</h3>
+  // And in the welcome message:
+  <h3 className="text-lg font-semibold text-gray-800">Welcome, {user.full_name || 'User'}</h3>
 
   // Load user data from localStorage on component mount
   useEffect(() => {
@@ -332,9 +333,9 @@ const [user, setUser] = useState(() => {
 
       // Fetch all APIs with error handling
       const [reliefResponse, incidentResponse, alertsResponse] = await Promise.allSettled([
-        fetch('http://localhost/gsm/backend/api/rgd/evacuees.php'),
-        fetch('http://localhost/gsm/backend/api/incidents.php'),
-        fetch(`http://localhost/gsm/backend/api/alerts.php?user_id=${userId}`)
+        fetch(`${API_BASE_URL}/api/rgd/evacuees.php`),
+        fetch(`${API_BASE_URL}/api/incidents.php`),
+        fetch(`${API_BASE_URL}/api/alerts.php?user_id=${userId}`)
       ]);
 
       let reliefData = { success: false, data: [] };
@@ -381,9 +382,9 @@ const [user, setUser] = useState(() => {
         reliefData.data.forEach(submission => {
           // Match by user_id first, then fallback to email/contact matching
           const isUserSubmission = (submission.user_id == userId) ||
-                                 (submission.email && submission.email === userEmail) ||
-                                 (submission.contact && submission.contact === userContact);
-          
+            (submission.email && submission.email === userEmail) ||
+            (submission.contact && submission.contact === userContact);
+
           if (isUserSubmission) {
             const notificationId = `relief-${submission.id}`;
             // Check if this notification was already marked as read by user
@@ -406,9 +407,9 @@ const [user, setUser] = useState(() => {
         incidentData.forEach(incident => {
           // Match by user_id first, then fallback to email/contact matching
           const isUserIncident = (incident.user_id == userId) ||
-                               (incident.reporter_email && incident.reporter_email === userEmail) ||
-                               (incident.reporter_contact && incident.reporter_contact === userContact);
-          
+            (incident.reporter_email && incident.reporter_email === userEmail) ||
+            (incident.reporter_contact && incident.reporter_contact === userContact);
+
           if (isUserIncident) {
             const notificationId = `incident-${incident.id}`;
             allNotifications.push({
@@ -465,7 +466,7 @@ const [user, setUser] = useState(() => {
     const quickCheckInterval = setInterval(() => {
       checkForNewNotifications();
     }, 5000); // Check every 5 seconds for immediate updates
-    
+
     return () => clearInterval(quickCheckInterval);
   }, []);
 
@@ -484,9 +485,9 @@ const [user, setUser] = useState(() => {
 
       // Quick fetch of latest data with error handling
       const [reliefResponse, incidentResponse, alertsResponse] = await Promise.allSettled([
-        fetch('http://localhost/gsm/backend/api/rgd/evacuees.php'),
-        fetch('http://localhost/gsm/backend/api/incidents.php'),
-        fetch(`http://localhost/gsm/backend/api/alerts.php?user_id=${userId}`)
+        fetch(`${API_BASE_URL}/api/rgd/evacuees.php`),
+        fetch(`${API_BASE_URL}/api/incidents.php`),
+        fetch(`${API_BASE_URL}/api/alerts.php?user_id=${userId}`)
       ]);
 
       let reliefData = { success: false, data: [] };
@@ -526,18 +527,18 @@ const [user, setUser] = useState(() => {
       if (reliefData.success && reliefData.data) {
         reliefData.data.forEach(submission => {
           const isUserSubmission = (submission.user_id == userId) ||
-                                 (submission.email && submission.email === userEmail) ||
-                                 (submission.contact && submission.contact === userContact);
-          
+            (submission.email && submission.email === userEmail) ||
+            (submission.contact && submission.contact === userContact);
+
           if (isUserSubmission) {
             const notificationId = `relief-${submission.id}`;
             const existingNotification = notifications.find(n => n.id === notificationId);
-            
+
             // Check if this is a new notification OR a status change
             const isNewNotification = !currentIds.includes(notificationId);
             const hasStatusChanged = existingNotification && existingNotification.status !== submission.status;
             const wasManuallyRead = readIds.includes(notificationId);
-            
+
             if (isNewNotification || hasStatusChanged) {
               // Show as unread for new notifications or status changes, unless it was already manually read
               const isRead = wasManuallyRead && !hasStatusChanged;
@@ -559,9 +560,9 @@ const [user, setUser] = useState(() => {
       if (incidentData && Array.isArray(incidentData)) {
         incidentData.forEach(incident => {
           const isUserIncident = (incident.user_id == userId) ||
-                               (incident.reporter_email && incident.reporter_email === userEmail) ||
-                               (incident.reporter_contact && incident.reporter_contact === userContact);
-          
+            (incident.reporter_email && incident.reporter_email === userEmail) ||
+            (incident.reporter_contact && incident.reporter_contact === userContact);
+
           if (isUserIncident) {
             const notificationId = `incident-${incident.id}`;
             if (!currentIds.includes(notificationId)) {
@@ -620,9 +621,9 @@ const [user, setUser] = useState(() => {
     if (savedReadNotifications) {
       try {
         const readIds = JSON.parse(savedReadNotifications);
-        setNotifications(prev => 
-          prev.map(n => ({ 
-            ...n, 
+        setNotifications(prev =>
+          prev.map(n => ({
+            ...n,
             read: readIds.includes(n.id) // Force read status from localStorage
           }))
         );
@@ -642,7 +643,7 @@ const [user, setUser] = useState(() => {
   const getNotificationIcon = (notification) => {
     switch (notification.type) {
       case 'relief':
-        return notification.status === 'Approved' 
+        return notification.status === 'Approved'
           ? <CheckCircle className="w-5 h-5 text-green-500" />
           : notification.status === 'Declined'
             ? <X className="w-5 h-5 text-red-500" />
@@ -667,10 +668,10 @@ const [user, setUser] = useState(() => {
   // Get notification styling
   const getNotificationStyles = (notification) => {
     if (notification.read) return 'bg-white hover:bg-gray-50';
-    
+
     switch (notification.type) {
       case 'relief':
-        return notification.status === 'Approved' 
+        return notification.status === 'Approved'
           ? 'bg-green-50 hover:bg-green-100'
           : notification.status === 'Declined'
             ? 'bg-red-50 hover:bg-red-100'
@@ -703,7 +704,7 @@ const [user, setUser] = useState(() => {
             </div>
             <div className="flex items-center space-x-4">
               <div className="relative" ref={notificationRef}>
-                <button 
+                <button
                   onClick={() => setShowNotifications(!showNotifications)}
                   className="p-2 rounded-full text-green-700 hover:bg-green-200 focus:outline-none relative"
                 >
@@ -745,7 +746,7 @@ const [user, setUser] = useState(() => {
                                       // Mark all as read and update localStorage
                                       const updatedNotifications = notifications.map(n => ({ ...n, read: true }));
                                       setNotifications(updatedNotifications);
-                                      
+
                                       // Update localStorage with all notification IDs
                                       const allNotificationIds = updatedNotifications.map(n => n.id);
                                       localStorage.setItem('readNotifications', JSON.stringify(allNotificationIds));
@@ -771,7 +772,7 @@ const [user, setUser] = useState(() => {
                         </div>
                       </div>
                     </div>
-                    
+
                     <div className="max-h-80 overflow-y-auto">
                       {notifications.length === 0 ? (
                         <div className="p-4 text-center text-gray-500">
@@ -785,8 +786,8 @@ const [user, setUser] = useState(() => {
                             className={`p-4 border-b border-gray-100 cursor-pointer transition-colors ${getNotificationStyles(notification)}`}
                             onClick={() => {
                               // Mark as read
-                              setNotifications(prev => 
-                                prev.map(n => 
+                              setNotifications(prev =>
+                                prev.map(n =>
                                   n.id === notification.id ? { ...n, read: true } : n
                                 )
                               );
@@ -814,8 +815,7 @@ const [user, setUser] = useState(() => {
                                   </p>
                                 )}
                                 <div className="flex items-center mt-2">
-                                  <span className={`text-xs px-2 py-1 rounded-full ${
-                                    notification.type === 'relief' 
+                                  <span className={`text-xs px-2 py-1 rounded-full ${notification.type === 'relief'
                                       ? notification.status === 'Approved'
                                         ? 'bg-green-100 text-green-800'
                                         : notification.status === 'Declined'
@@ -834,7 +834,7 @@ const [user, setUser] = useState(() => {
                                               ? 'bg-orange-100 text-orange-800'
                                               : 'bg-blue-100 text-blue-800'
                                           : 'bg-gray-100 text-gray-800'
-                                  }`}>
+                                    }`}>
                                     {notification.type === 'relief' && notification.status}
                                     {notification.type === 'incident' && notification.status}
                                     {notification.type === 'alert' && notification.level?.toUpperCase()}
@@ -850,7 +850,7 @@ const [user, setUser] = useState(() => {
                 )}
               </div>
               <div className="relative" ref={dropdownRef}>
-                <button 
+                <button
                   type="button"
                   className="flex items-center space-x-2 focus:outline-none"
                   onClick={() => setIsDropdownOpen(!isDropdownOpen)}
@@ -900,56 +900,55 @@ const [user, setUser] = useState(() => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex space-x-8 overflow-x-auto py-2 hide-scrollbar">
             {[
-              { 
+              {
                 id: 'home',
-                name: 'Home', 
+                name: 'Home',
                 icon: <Home className="h-4 w-4 mr-1 inline" />
               },
-              { 
+              {
                 id: 'map',
-                name: 'Map', 
+                name: 'Map',
                 icon: <MapPin className="h-4 w-4 mr-1 inline" />
               },
-              { 
+              {
                 id: 'calendar',
-                name: 'Calendar & Schedule', 
+                name: 'Calendar & Schedule',
                 icon: <Calendar className="h-4 w-4 mr-1 inline" />
               },
-              { 
+              {
                 id: 'relief',
-                name: 'Relief Form', 
+                name: 'Relief Form',
                 icon: <ClipboardList className="h-4 w-4 mr-1 inline" />
               },
-              { 
+              {
                 id: 'incident',
-                name: 'Incident Report', 
+                name: 'Incident Report',
                 icon: <AlertTriangle className="h-4 w-4 mr-1 inline" />
               },
-              { 
+              {
                 id: 'alert',
-                name: 'Alert Response', 
+                name: 'Alert Response',
                 icon: <Bell className="h-4 w-4 mr-1 inline" />
               },
-              { 
+              {
                 id: 'chatbot',
-                name: 'Chatbot', 
+                name: 'Chatbot',
                 icon: <MessageSquare className="h-4 w-4 mr-1 inline" />
               }
             ].map((item) => (
               <button
                 key={item.id}
                 onClick={() => setAndNavigate(item.id)}
-                className={`whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm transition-colors duration-200 flex items-center ${
-                  activeModule === item.id
+                className={`whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm transition-colors duration-200 flex items-center ${activeModule === item.id
                     ? 'border-blue-500 text-blue-600'
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }`}
+                  }`}
               >
                 {item.icon}
                 {item.name}
               </button>
             ))}
-          
+
           </div>
         </div>
       </div>
@@ -981,11 +980,11 @@ const [user, setUser] = useState(() => {
                 </p>
               </div>
             </div>
-            
+
             <p className="text-gray-700 dark:text-gray-300 mb-6">
               Are you sure you want to sign out? You will need to login again to access the system.
             </p>
-            
+
             <div className="flex justify-end space-x-3">
               <button
                 onClick={() => setShowLogoutModal(false)}

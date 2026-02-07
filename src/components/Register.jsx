@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import gsmLogo from '../assets/gsm_logo.png';
+import { API_BASE_URL } from '../config';
 
 const Register = () => {
     const [formData, setFormData] = useState({
@@ -27,7 +28,7 @@ const Register = () => {
 
     const handleChange = (e) => {
         const { name, value, type, checked } = e.target;
-        
+
         // Special handling for contact number to only allow numbers and limit to 11 digits
         if (name === 'contactNumber') {
             // Only update if the value is a number and 11 digits or less
@@ -43,7 +44,7 @@ const Register = () => {
                 [name]: type === 'checkbox' ? checked : value
             }));
         }
-        
+
         // Clear error when user types
         if (errors[name]) {
             setErrors(prev => ({
@@ -55,14 +56,14 @@ const Register = () => {
 
     const validateForm = () => {
         const newErrors = {};
-        
+
         if (!formData.fullName.trim()) {
             setErrorMessage('Please enter your full name.');
             setErrorType('validation');
             setShowErrorModal(true);
             return false;
         }
-        
+
         if (!formData.email) {
             setErrorMessage('Email address is required.');
             setErrorType('email');
@@ -74,7 +75,7 @@ const Register = () => {
             setShowErrorModal(true);
             return false;
         }
-        
+
         if (!formData.contactNumber) {
             setErrorMessage('Contact number is required.');
             setErrorType('validation');
@@ -86,21 +87,21 @@ const Register = () => {
             setShowErrorModal(true);
             return false;
         }
-        
+
         if (!formData.barangay) {
             setErrorMessage('Please select your barangay.');
             setErrorType('validation');
             setShowErrorModal(true);
             return false;
         }
-        
+
         if (!formData.address.trim()) {
             setErrorMessage('Please enter your complete address.');
             setErrorType('validation');
             setShowErrorModal(true);
             return false;
         }
-        
+
         if (!formData.password) {
             setErrorMessage('Password is required.');
             setErrorType('password');
@@ -117,7 +118,7 @@ const Register = () => {
             setShowErrorModal(true);
             return false;
         }
-        
+
         if (!formData.confirmPassword) {
             setErrorMessage('Please confirm your password.');
             setErrorType('password');
@@ -129,27 +130,27 @@ const Register = () => {
             setShowErrorModal(true);
             return false;
         }
-        
+
         if (!formData.agreeTerms) {
             setErrorMessage('You must agree to the terms and conditions to register.');
             setErrorType('validation');
             setShowErrorModal(true);
             return false;
         }
-        
+
         setErrors(newErrors);
         return true;
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        
+
         if (!validateForm()) return;
-        
+
         setLoading(true);
-        
+
         try {
-            const response = await fetch('http://localhost/gsm/backend/register.php', {
+            const response = await fetch(`${API_BASE_URL}/register.php`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -173,7 +174,7 @@ const Register = () => {
             if (data.status === 'success') {
                 setSuccessMessage(data.message || 'Registration successful! You can now log in.');
                 setShowSuccessModal(true);
-                
+
                 // Clear form
                 setFormData({
                     fullName: '',
@@ -185,7 +186,7 @@ const Register = () => {
                     confirmPassword: '',
                     agreeTerms: false
                 });
-                
+
                 // Redirect to login after 3 seconds
                 setTimeout(() => {
                     navigate('/login');
@@ -193,10 +194,10 @@ const Register = () => {
             } else {
                 throw new Error(data.message || 'Registration failed');
             }
-            
+
         } catch (error) {
             console.error('Registration error:', error);
-            
+
             // Handle different types of errors with specific messages
             if (error.message.includes('Email already registered') || error.message.includes('Duplicate entry')) {
                 setErrorMessage('This email is already registered. Please use a different email or log in instead.');
@@ -223,7 +224,7 @@ const Register = () => {
                 setErrorType('server');
                 setShowErrorModal(true);
             }
-            
+
             // Clear any previous field-specific errors
             setErrors(prev => ({
                 ...prev,
@@ -465,7 +466,7 @@ const Register = () => {
                         />
                         <label htmlFor="agreeTerms" className="ml-2 block text-sm text-gray-700">
                             I agree to the{' '}
-                            <button 
+                            <button
                                 type="button"
                                 className="text-green-600 hover:text-green-500 focus:outline-none"
                                 onClick={(e) => {
@@ -508,14 +509,14 @@ const Register = () => {
 
                 <div className="text-center text-sm">
                     <p className="mt-2 text-center text-sm text-gray-600">
-                    Already have an account?{' '}
-                    <Link to="/login" className="font-medium text-blue-600 hover:text-blue-500">
-                        Sign in
-                    </Link>
-                </p>
+                        Already have an account?{' '}
+                        <Link to="/login" className="font-medium text-blue-600 hover:text-blue-500">
+                            Sign in
+                        </Link>
+                    </p>
 
                 </div>
-                
+
                 {/* Success Modal */}
                 {showSuccessModal && (
                     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -553,13 +554,12 @@ const Register = () => {
                     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
                         <div className="bg-white p-6 rounded-lg shadow-xl max-w-sm w-full mx-4">
                             <div className="flex items-center justify-center">
-                                <div className={`mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full ${
-                                    errorType === 'email' ? 'bg-orange-100' :
-                                    errorType === 'password' ? 'bg-purple-100' :
-                                    errorType === 'network' ? 'bg-yellow-100' :
-                                    errorType === 'server' ? 'bg-red-100' :
-                                    'bg-red-100'
-                                }`}>
+                                <div className={`mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full ${errorType === 'email' ? 'bg-orange-100' :
+                                        errorType === 'password' ? 'bg-purple-100' :
+                                            errorType === 'network' ? 'bg-yellow-100' :
+                                                errorType === 'server' ? 'bg-red-100' :
+                                                    'bg-red-100'
+                                    }`}>
                                     {errorType === 'email' ? (
                                         <svg className="h-6 w-6 text-orange-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
@@ -586,10 +586,10 @@ const Register = () => {
                             <div className="mt-3 text-center">
                                 <h3 className="text-lg leading-6 font-medium text-gray-900">
                                     {errorType === 'email' ? 'Email Error' :
-                                     errorType === 'password' ? 'Password Error' :
-                                     errorType === 'network' ? 'Network Error' :
-                                     errorType === 'server' ? 'Server Error' :
-                                     'Validation Error'}
+                                        errorType === 'password' ? 'Password Error' :
+                                            errorType === 'network' ? 'Network Error' :
+                                                errorType === 'server' ? 'Server Error' :
+                                                    'Validation Error'}
                                 </h3>
                                 <div className="mt-2">
                                     <p className="text-sm text-gray-500">
@@ -617,13 +617,12 @@ const Register = () => {
                             <div className="mt-4">
                                 <button
                                     type="button"
-                                    className={`w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 text-base font-medium text-white hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 sm:text-sm ${
-                                        errorType === 'email' ? 'bg-orange-600 hover:bg-orange-700 focus:ring-orange-500' :
-                                        errorType === 'password' ? 'bg-purple-600 hover:bg-purple-700 focus:ring-purple-500' :
-                                        errorType === 'network' ? 'bg-yellow-600 hover:bg-yellow-700 focus:ring-yellow-500' :
-                                        errorType === 'server' ? 'bg-red-600 hover:bg-red-700 focus:ring-red-500' :
-                                        'bg-red-600 hover:bg-red-700 focus:ring-red-500'
-                                    }`}
+                                    className={`w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 text-base font-medium text-white hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 sm:text-sm ${errorType === 'email' ? 'bg-orange-600 hover:bg-orange-700 focus:ring-orange-500' :
+                                            errorType === 'password' ? 'bg-purple-600 hover:bg-purple-700 focus:ring-purple-500' :
+                                                errorType === 'network' ? 'bg-yellow-600 hover:bg-yellow-700 focus:ring-yellow-500' :
+                                                    errorType === 'server' ? 'bg-red-600 hover:bg-red-700 focus:ring-red-500' :
+                                                        'bg-red-600 hover:bg-red-700 focus:ring-red-500'
+                                        }`}
                                     onClick={() => setShowErrorModal(false)}
                                 >
                                     OK
@@ -633,9 +632,9 @@ const Register = () => {
                     </div>
                 )}
             </div>
-            
+
             {/* Terms of Service Modal */}
-            <div 
+            <div
                 style={{
                     display: showTermsModal ? 'flex' : 'none',
                     position: 'fixed',
@@ -651,7 +650,7 @@ const Register = () => {
                 }}
                 onClick={() => setShowTermsModal(false)}
             >
-                <div 
+                <div
                     style={{
                         backgroundColor: 'white',
                         borderRadius: '0.5rem',
@@ -670,10 +669,10 @@ const Register = () => {
                         <div className="prose max-w-none">
                             <h3>1. Acceptance of Terms</h3>
                             <p>By accessing and using the Government Services Management System (GSM), you accept and agree to be bound by the terms and provision of this agreement.</p>
-                            
+
                             <h3>2. Description of Service</h3>
                             <p>The GSM provides a platform for managing government services, including but not limited to relief distribution, incident reporting, and emergency management.</p>
-                            
+
                             <h3>3. User Responsibilities</h3>
                             <p>As a user of this system, you agree to:</p>
                             <ul className="list-disc pl-5 space-y-1">
@@ -682,24 +681,24 @@ const Register = () => {
                                 <li>Use the system only for lawful purposes</li>
                                 <li>Not engage in any activity that disrupts or interferes with the system</li>
                             </ul>
-                            
+
                             <h3>4. Data Privacy</h3>
                             <p>We are committed to protecting your privacy. All personal information collected will be used in accordance with the Data Privacy Act of 2012 (Republic Act No. 10173).</p>
-                            
+
                             <h3>5. System Availability</h3>
                             <p>We strive to maintain system availability but do not guarantee uninterrupted access. Scheduled maintenance may occur from time to time.</p>
-                            
+
                             <h3>6. Limitation of Liability</h3>
                             <p>The local government unit shall not be liable for any indirect, incidental, or consequential damages resulting from the use or inability to use the system.</p>
-                            
+
                             <h3>7. Changes to Terms</h3>
                             <p>We reserve the right to modify these terms at any time. Your continued use of the system constitutes acceptance of any changes.</p>
-                            
+
                             <h3>8. Governing Law</h3>
                             <p>These terms shall be governed by and construed in accordance with the laws of the Republic of the Philippines.</p>
                         </div>
                     </div>
-                    <div style={{ 
+                    <div style={{
                         padding: '1rem',
                         backgroundColor: '#f9fafb',
                         borderTop: '1px solid #e5e7eb',

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Bell } from 'lucide-react';
+import { API_BASE_URL } from '../../config';
 
 const AlertResponsePage = () => {
   const [alerts, setAlerts] = useState([]);
@@ -41,37 +42,37 @@ const AlertResponsePage = () => {
         // Only set loading to false if it's currently true (initial load)
         setLoading(false);
       }
-      
-      const response = await fetch(`http://localhost/gsm/backend/api/alerts.php?user_id=${userId}`);
+
+      const response = await fetch(`${API_BASE_URL}/api/alerts.php?user_id=${userId}`);
       const data = await response.json();
-      
+
       if (data.success) {
         // Check for new alerts and track their received time
         const currentAlertCount = data.alerts.length;
         const newReceivedTimes = { ...receivedTimes };
         const currentTime = new Date().toISOString();
-        
+
         // Track received time for new alerts
         data.alerts.forEach(alert => {
           if (!receivedTimes[alert.id]) {
             newReceivedTimes[alert.id] = currentTime;
           }
         });
-        
+
         setReceivedTimes(newReceivedTimes);
-        
+
         if (currentAlertCount > previousAlertCount && previousAlertCount > 0 && !manualRefresh) {
           console.log(`New alerts arrived! ${currentAlertCount - previousAlertCount} new alerts`);
         }
-        
+
         setAlerts(data.alerts);
         setPreviousAlertCount(currentAlertCount);
         setError(null);
         setLastRefresh(new Date());
-        
+
         // Ensure loading is set to false after successful fetch
         setLoading(false);
-        
+
         // Only show debug info for manual refresh to reduce console spam
         if (manualRefresh && data.debug) {
           console.log('Debug Info:', data.debug);
@@ -113,7 +114,7 @@ const AlertResponsePage = () => {
 
   const markAsRead = async (alertId) => {
     try {
-      const response = await fetch('http://localhost/gsm/backend/api/alert_status.php', {
+      const response = await fetch(`${API_BASE_URL}/api/alert_status.php`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -125,12 +126,12 @@ const AlertResponsePage = () => {
       });
 
       const data = await response.json();
-      
+
       if (data.success) {
         // Update local state to mark alert as read
-        setAlerts(prevAlerts => 
-          prevAlerts.map(alert => 
-            alert.id === alertId 
+        setAlerts(prevAlerts =>
+          prevAlerts.map(alert =>
+            alert.id === alertId
               ? { ...alert, is_read: true, read_at: new Date().toISOString() }
               : alert
           )
@@ -154,20 +155,20 @@ const AlertResponsePage = () => {
   const formatDate = (dateString) => {
     if (!dateString) return '';
     const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', { 
-      month: 'short', 
-      day: 'numeric', 
-      year: 'numeric' 
+    return date.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric'
     });
   };
 
   const formatTime = (dateString) => {
     if (!dateString) return '';
     const date = new Date(dateString);
-    return date.toLocaleTimeString('en-US', { 
-      hour: '2-digit', 
+    return date.toLocaleTimeString('en-US', {
+      hour: '2-digit',
       minute: '2-digit',
-      hour12: true 
+      hour12: true
     });
   };
 
@@ -194,7 +195,7 @@ const AlertResponsePage = () => {
         </h1>
         <div className="bg-white rounded-lg shadow p-8 text-center">
           <p className="text-red-500">{error}</p>
-          <button 
+          <button
             onClick={fetchUserAlerts}
             className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
           >
@@ -213,8 +214,8 @@ const AlertResponsePage = () => {
           Alert Response
         </h1>
         <div className="flex items-center gap-4">
-          <select 
-            value={filter} 
+          <select
+            value={filter}
             onChange={(e) => setFilter(e.target.value)}
             className="px-3 py-2 border rounded-lg text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
           >
@@ -225,7 +226,7 @@ const AlertResponsePage = () => {
           <span className="text-sm text-gray-500">
             Last updated: {lastRefresh.toLocaleTimeString()}
           </span>
-          <button 
+          <button
             onClick={() => fetchUserAlerts(true)}
             disabled={refreshing}
             className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
@@ -234,16 +235,16 @@ const AlertResponsePage = () => {
           </button>
         </div>
       </div>
-      
+
       {filteredAlerts.length === 0 ? (
         <div className="bg-white rounded-lg shadow p-8 text-center">
           <Bell className="h-12 w-12 mx-auto text-gray-400 mb-4" />
           <p className="text-gray-500">
-            {filter === 'all' ? 'No alerts available for your area.' : 
-             filter === 'unread' ? 'No unread alerts.' : 'No read alerts.'}
+            {filter === 'all' ? 'No alerts available for your area.' :
+              filter === 'unread' ? 'No unread alerts.' : 'No read alerts.'}
           </p>
           {filter !== 'all' && (
-            <button 
+            <button
               onClick={() => setFilter('all')}
               className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
             >
@@ -255,8 +256,8 @@ const AlertResponsePage = () => {
         <div className="bg-white rounded-lg shadow overflow-hidden">
           <div className="divide-y divide-gray-200">
             {filteredAlerts.map((alert) => (
-              <div 
-                key={alert.id} 
+              <div
+                key={alert.id}
                 className={`p-4 hover:bg-gray-50 ${!alert.is_read ? 'bg-blue-50' : ''}`}
               >
                 <div className="flex items-start">
@@ -264,7 +265,7 @@ const AlertResponsePage = () => {
                     <div className={`h-3 w-3 rounded-full ${!alert.is_read ? 'bg-blue-500' : 'bg-gray-300'}`}></div>
                   </div>
                   <div className="ml-3 flex-1">
-                    <div 
+                    <div
                       className="cursor-pointer hover:bg-gray-50 p-2 rounded transition-colors"
                       onClick={() => setSelectedAlert(alert)}
                     >
@@ -277,13 +278,12 @@ const AlertResponsePage = () => {
                         </div>
                       </div>
                       <div className="mt-1 flex items-center gap-2">
-                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                          alert.level === 'High' 
+                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${alert.level === 'High'
                             ? 'bg-red-100 text-red-800'
                             : alert.level === 'Moderate'
-                            ? 'bg-yellow-100 text-yellow-800'
-                            : 'bg-green-100 text-green-800'
-                        }`}>
+                              ? 'bg-yellow-100 text-yellow-800'
+                              : 'bg-green-100 text-green-800'
+                          }`}>
                           {alert.level}
                         </span>
                         <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
@@ -303,7 +303,7 @@ const AlertResponsePage = () => {
                     </div>
                     {!alert.is_read && (
                       <div className="mt-2">
-                        <button 
+                        <button
                           onClick={() => markAsRead(alert.id)}
                           className="text-xs font-medium text-blue-600 hover:text-blue-800"
                         >
@@ -318,7 +318,7 @@ const AlertResponsePage = () => {
           </div>
         </div>
       )}
-      
+
       {/* Safety Guidelines Section */}
       <div className="mt-6 bg-white rounded-lg shadow p-6">
         <h2 className="text-lg font-medium text-gray-900 mb-4">Safety Guidelines</h2>
@@ -341,7 +341,7 @@ const AlertResponsePage = () => {
       {/* Emergency Hotlines Section */}
       <div className="mt-6 bg-white rounded-lg shadow p-6">
         <h2 className="text-lg font-medium text-gray-900 mb-4">Emergency Hotlines</h2>
-        
+
         {/* Mobile Contact Numbers */}
         <div className="mb-6">
           <h3 className="font-semibold text-gray-800 mb-3">Mobile Contact Numbers (Rescue & DRRMO)</h3>
@@ -401,16 +401,15 @@ const AlertResponsePage = () => {
                 </button>
               </div>
             </div>
-            
+
             <div className="p-6">
               <div className="mb-4 flex items-center gap-3">
-                <span className={`inline-flex px-3 py-1 text-sm font-semibold rounded-full ${
-                  selectedAlert.level === 'High' 
+                <span className={`inline-flex px-3 py-1 text-sm font-semibold rounded-full ${selectedAlert.level === 'High'
                     ? 'bg-red-100 text-red-800'
                     : selectedAlert.level === 'Moderate'
-                    ? 'bg-yellow-100 text-yellow-800'
-                    : 'bg-green-100 text-green-800'
-                }`}>
+                      ? 'bg-yellow-100 text-yellow-800'
+                      : 'bg-green-100 text-green-800'
+                  }`}>
                   {selectedAlert.level} Priority
                 </span>
                 <span className="inline-flex px-3 py-1 text-sm font-semibold rounded-full bg-blue-100 text-blue-800">
@@ -422,14 +421,14 @@ const AlertResponsePage = () => {
                   </span>
                 )}
               </div>
-              
+
               <div className="mb-6">
                 <h3 className="text-sm font-medium text-gray-500 mb-2">Description</h3>
                 <p className="text-gray-900 whitespace-pre-wrap">
                   {selectedAlert.description || 'No description available'}
                 </p>
               </div>
-              
+
               <div className="mb-6">
                 <h3 className="text-sm font-medium text-gray-500 mb-2">Timeline</h3>
                 <div className="space-y-2">
@@ -455,7 +454,7 @@ const AlertResponsePage = () => {
                   )}
                 </div>
               </div>
-              
+
               <div className="flex gap-3">
                 {!selectedAlert.is_read && (
                   <button

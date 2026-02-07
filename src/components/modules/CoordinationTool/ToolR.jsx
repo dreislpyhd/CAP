@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { API_BASE_URL } from '../../../config';
 
 function ToolResource() {
   const [requestForm, setRequestForm] = useState({
@@ -20,7 +21,7 @@ function ToolResource() {
   const fetchRequests = async () => {
     try {
       setLoading(true);
-      const response = await axios.get('http://localhost/gsm/backend/api/coordination/resource_requests.php');
+      const response = await axios.get(`${API_BASE_URL}/api/coordination/resource_requests.php`);
       if (response.data.success) {
         setRequests(response.data.data || []);
       }
@@ -42,7 +43,7 @@ function ToolResource() {
     e.preventDefault();
     try {
       // Send data to local API
-      const response = await axios.post('http://localhost/gsm/backend/api/coordination/resource_requests.php', {
+      const response = await axios.post(`${API_BASE_URL}/api/coordination/resource_requests.php`, {
         barangay: requestForm.barangay,
         location: requestForm.location,
         disaster_type: requestForm.disaster_type,
@@ -147,7 +148,7 @@ function ToolResource() {
         {/* Requests List Section */}
         <div className="bg-white dark:bg-slate-800 rounded-lg shadow-md p-6 border border-gray-200 dark:border-slate-700">
           <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-slate-200">Submitted Requests</h3>
-          
+
           {loading ? (
             <p className="text-gray-500 dark:text-gray-400 text-center py-4">Loading requests...</p>
           ) : requests.length === 0 ? (
@@ -173,13 +174,12 @@ function ToolResource() {
                       <td className="py-2 px-2 text-gray-900 dark:text-slate-200">{request.disaster_type}</td>
                       <td className="py-2 px-2 text-gray-900 dark:text-slate-200">{request.quantity}</td>
                       <td className="py-2 px-2">
-                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                          request.status === 'Pending' 
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${request.status === 'Pending'
                             ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
                             : request.status === 'Approved'
-                            ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
-                            : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
-                        }`}>
+                              ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+                              : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
+                          }`}>
                           {request.status}
                         </span>
                       </td>

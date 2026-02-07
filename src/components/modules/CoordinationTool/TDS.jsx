@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
+import { API_BASE_URL } from '../../../config';
 
 function Training() {
   const [events, setEvents] = useState([]);
@@ -26,7 +27,7 @@ function Training() {
 
   const fetchEvents = useCallback(async () => {
     try {
-      const response = await axios.get('http://localhost/gsm/backend/api/coordination/training.php');
+      const response = await axios.get(`${API_BASE_URL}/api/coordination/training.php`);
       if (response.data.success) {
         setEvents(response.data.data || []);
       } else {
@@ -140,7 +141,7 @@ function Training() {
       description: event.description,
       status: event.status
     };
-    
+
     setForm(formData);
     setIsEdit(true);
     setCurrentEvent(event);
@@ -158,19 +159,19 @@ function Training() {
       // Validate required fields
       const requiredFields = ['title', 'date', 'time', 'duration', 'location', 'description'];
       const missingFields = requiredFields.filter(field => !form[field]);
-      
+
       if (missingFields.length > 0) {
         alert(`Please fill in all required fields: ${missingFields.join(', ')}`);
         return;
       }
-      
+
       let response;
       if (isEdit) {
-        response = await axios.put(`http://localhost/gsm/backend/api/coordination/training.php?id=${currentEvent.id}`, form);
+        response = await axios.put(`${API_BASE_URL}/api/coordination/training.php?id=${currentEvent.id}`, form);
       } else {
-        response = await axios.post('http://localhost/gsm/backend/api/coordination/training.php', form);
+        response = await axios.post(`${API_BASE_URL}/api/coordination/training.php`, form);
       }
-      
+
       if (response.data.success) {
         await fetchEvents();
         setIsModalOpen(false);
@@ -190,12 +191,12 @@ function Training() {
     if (!window.confirm('Are you sure you want to delete this event?')) {
       return;
     }
-    
+
     const eventToDelete = events.find(event => event.id === id);
-    
+
     try {
-      const response = await axios.delete(`http://localhost/gsm/backend/api/coordination/training.php?id=${id}`);
-      
+      const response = await axios.delete(`${API_BASE_URL}/api/coordination/training.php?id=${id}`);
+
       if (response.data.success) {
         setDeletedEvent(eventToDelete);
         setUndoCountdown(5);
@@ -214,7 +215,7 @@ function Training() {
   const handleUndo = async () => {
     if (deletedEvent) {
       try {
-        await axios.post('http://localhost/gsm/backend/api/coordination/training.php', deletedEvent);
+        await axios.post(`${API_BASE_URL}/api/coordination/training.php`, deletedEvent);
         setDeletedEvent(null);
         setUndoCountdown(0);
         fetchEvents();
@@ -350,9 +351,8 @@ function Training() {
             {calendar.map((day, index) => (
               <div
                 key={index}
-                className={`min-h-[80px] sm:min-h-[100px] p-2 border border-gray-200 dark:border-slate-700 ${
-                  day ? 'hover:bg-gray-50 dark:hover:bg-slate-700 cursor-pointer' : 'bg-gray-50 dark:bg-slate-900'
-                } ${day && isToday(day.date) ? 'bg-blue-100 dark:bg-blue-900/20' : ''}`}
+                className={`min-h-[80px] sm:min-h-[100px] p-2 border border-gray-200 dark:border-slate-700 ${day ? 'hover:bg-gray-50 dark:hover:bg-slate-700 cursor-pointer' : 'bg-gray-50 dark:bg-slate-900'
+                  } ${day && isToday(day.date) ? 'bg-blue-100 dark:bg-blue-900/20' : ''}`}
                 onClick={() => day && handleAdd(day.date)}
               >
                 {day && (
@@ -413,36 +413,36 @@ function Training() {
                     return a.time.localeCompare(b.time);
                   })
                   .map((event) => (
-                  <tr key={event.id} className="hover:bg-gray-50 dark:hover:bg-slate-700">
-                    <td className="px-3 sm:px-6 py-4">
-                      <div>
-                        <div className="text-sm sm:text-base font-medium text-gray-900 dark:text-slate-200">{event.title}</div>
-                        <div className="text-xs sm:text-sm text-gray-500 dark:text-slate-400">{event.status}</div>
-                      </div>
-                    </td>
-                    <td className="px-3 sm:px-6 py-4 text-sm">
-                      <div>{new Date(event.date).toLocaleDateString()}</div>
-                      <div className="text-gray-500 dark:text-slate-400">{event.time} ({event.duration})</div>
-                    </td>
-                    <td className="hidden md:table-cell px-6 py-4 text-sm">{event.location}</td>
-                    <td className="px-3 sm:px-6 py-4 text-center">
-                      <div className="flex flex-col sm:flex-row gap-1 sm:gap-2 justify-center">
-                        <button
-                          onClick={() => handleEdit(event)}
-                          className="px-2 sm:px-3 py-1 bg-blue-500 hover:bg-blue-600 text-white rounded text-xs"
-                        >
-                          Edit
-                        </button>
-                        <button
-                          onClick={() => handleDelete(event.id)}
-                          className="px-2 sm:px-3 py-1 bg-red-500 hover:bg-red-600 text-white rounded text-xs"
-                        >
-                          Delete
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
+                    <tr key={event.id} className="hover:bg-gray-50 dark:hover:bg-slate-700">
+                      <td className="px-3 sm:px-6 py-4">
+                        <div>
+                          <div className="text-sm sm:text-base font-medium text-gray-900 dark:text-slate-200">{event.title}</div>
+                          <div className="text-xs sm:text-sm text-gray-500 dark:text-slate-400">{event.status}</div>
+                        </div>
+                      </td>
+                      <td className="px-3 sm:px-6 py-4 text-sm">
+                        <div>{new Date(event.date).toLocaleDateString()}</div>
+                        <div className="text-gray-500 dark:text-slate-400">{event.time} ({event.duration})</div>
+                      </td>
+                      <td className="hidden md:table-cell px-6 py-4 text-sm">{event.location}</td>
+                      <td className="px-3 sm:px-6 py-4 text-center">
+                        <div className="flex flex-col sm:flex-row gap-1 sm:gap-2 justify-center">
+                          <button
+                            onClick={() => handleEdit(event)}
+                            className="px-2 sm:px-3 py-1 bg-blue-500 hover:bg-blue-600 text-white rounded text-xs"
+                          >
+                            Edit
+                          </button>
+                          <button
+                            onClick={() => handleDelete(event.id)}
+                            className="px-2 sm:px-3 py-1 bg-red-500 hover:bg-red-600 text-white rounded text-xs"
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
               </tbody>
             </table>
           </div>
@@ -471,7 +471,7 @@ function Training() {
                   </button>
                 </div>
               </div>
-              
+
               <form onSubmit={handleSubmit}>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
@@ -603,11 +603,11 @@ function Training() {
               <div className="space-y-4">
                 {getScheduledDates().map(date => (
                   <div key={date} className="border border-gray-200 dark:border-slate-700 rounded-lg p-4">
-                    <h3 className="font-semibold text-lg mb-2">{new Date(date).toLocaleDateString('en-US', { 
-                      weekday: 'long', 
-                      year: 'numeric', 
-                      month: 'long', 
-                      day: 'numeric' 
+                    <h3 className="font-semibold text-lg mb-2">{new Date(date).toLocaleDateString('en-US', {
+                      weekday: 'long',
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric'
                     })}</h3>
                     <div className="space-y-2">
                       {getEventsForDate(date).map(event => (
@@ -618,11 +618,10 @@ function Training() {
                               {event.time} - {event.location}
                             </div>
                           </div>
-                          <span className={`px-2 py-1 rounded text-xs font-medium ${
-                            event.training_type === 'Training' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200' :
-                            event.training_type === 'Drill' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' :
-                            'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200'
-                          }`}>
+                          <span className={`px-2 py-1 rounded text-xs font-medium ${event.training_type === 'Training' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200' :
+                              event.training_type === 'Drill' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' :
+                                'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200'
+                            }`}>
                             {event.training_type}
                           </span>
                         </div>

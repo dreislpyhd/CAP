@@ -35,6 +35,7 @@ import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 
 import axios from "axios";
+import { API_BASE_URL } from '../../config';
 
 
 
@@ -176,7 +177,7 @@ export default function MapPage() {
 
   const [mapZoom, setMapZoom] = useState(initialPosition.zoom);
 
-  const [mapReady, setMapReady] = useState(false); 
+  const [mapReady, setMapReady] = useState(false);
 
 
 
@@ -219,7 +220,7 @@ export default function MapPage() {
 
   const [savedData, setSavedData] = useState(null);
 
-  
+
 
   // ===== Flood polygon drawing states =====
 
@@ -229,7 +230,7 @@ export default function MapPage() {
 
   const [currentFloodVertices, setCurrentFloodVertices] = useState([]); // [{lat,lng}, ...]
 
-  
+
 
   // Search marker state
 
@@ -249,29 +250,29 @@ export default function MapPage() {
         console.log('MapPage: Ref lock active, skipping fetch');
         return;
       }
-      
+
       if (!force && window[GLOBAL_FETCH_LOCK]) {
         console.log('MapPage: Global lock active, skipping fetch');
         return;
       }
-      
+
       const now = Date.now();
       if (!force && window.lastMapPageFetch && (now - window.lastMapPageFetch) < 1000) {
         console.log('MapPage: Timeout protection active, skipping fetch');
         return;
       }
 
-      const response = await axios.get('http://localhost/gsm/backend/api/hes/evacuations.php');
+      const response = await axios.get(`${API_BASE_URL}/api/hes/evacuations.php`);
 
       console.log('Evacuations API Response:', response.data);
 
-      
+
 
       // Check if response.data is an array, if not, use empty array
 
       const data = Array.isArray(response.data) ? response.data : [];
 
-      
+
 
       const formattedData = data.map(e => ({
 
@@ -322,29 +323,29 @@ export default function MapPage() {
         console.log('MapPage: Ref lock active, skipping fetch');
         return;
       }
-      
+
       if (!force && window[GLOBAL_FETCH_LOCK]) {
         console.log('MapPage: Global lock active, skipping fetch');
         return;
       }
-      
+
       const now = Date.now();
       if (!force && window.lastMapPageFetch && (now - window.lastMapPageFetch) < 1000) {
         console.log('MapPage: Timeout protection active, skipping fetch');
         return;
       }
 
-      const response = await axios.get('http://localhost/gsm/backend/api/hes/hazards.php');
+      const response = await axios.get(`${API_BASE_URL}/api/hes/hazards.php`);
 
       console.log('Hazards API Response:', response.data);
 
-      
+
 
       // Check if response.data is an array, if not, use empty array
 
       const data = Array.isArray(response.data) ? response.data : [];
 
-      
+
 
       const formattedData = data.map(h => ({
 
@@ -386,42 +387,42 @@ export default function MapPage() {
 
 
 
-  
 
 
-  
+
+
 
 
   // Global flag to prevent any duplicate fetches across all instances
-const GLOBAL_FETCH_LOCK = 'MAP_PAGE_DATA_LOADED';
+  const GLOBAL_FETCH_LOCK = 'MAP_PAGE_DATA_LOADED';
 
-// Fetch data from API
+  // Fetch data from API
   useEffect(() => {
     // Multiple layers of protection
     if (dataLoadedRef.current) {
       console.log('MapPage: Ref lock active, skipping fetch');
       return;
     }
-    
+
     if (window[GLOBAL_FETCH_LOCK]) {
       console.log('MapPage: Global lock active, skipping fetch');
       return;
     }
-    
+
     // Additional timeout-based protection
     const now = Date.now();
     if (window.lastMapPageFetch && (now - window.lastMapPageFetch) < 1000) {
       console.log('MapPage: Timeout protection active, skipping fetch');
       return;
     }
-    
+
     const fetchData = async () => {
       try {
         // Set all locks immediately
         dataLoadedRef.current = true;
         window[GLOBAL_FETCH_LOCK] = true;
         window.lastMapPageFetch = now;
-        
+
         console.log('MapPage: >>> STARTING INITIAL DATA FETCH <<<');
         await fetchManualEvacuations(true);
         await fetchManualHazards(true);
@@ -434,9 +435,9 @@ const GLOBAL_FETCH_LOCK = 'MAP_PAGE_DATA_LOADED';
         delete window.lastMapPageFetch;
       }
     };
-    
+
     fetchData();
-    
+
     // Cleanup function
     return () => {
       console.log('MapPage: Cleanup called - resetting locks');
@@ -502,13 +503,13 @@ const GLOBAL_FETCH_LOCK = 'MAP_PAGE_DATA_LOADED';
 
     const allEnabled = Object.values(activeLayer).every(Boolean);
 
-    const newState = allEnabled ? 
+    const newState = allEnabled ?
 
       { flood: false, earthquake: false, evacuation: false, fire: false, roadAccident: false, powerOutage: false } :
 
       { flood: true, earthquake: true, evacuation: true, fire: true, roadAccident: true, powerOutage: true };
 
-    
+
 
     setActiveLayer(newState);
 
@@ -592,11 +593,11 @@ const GLOBAL_FETCH_LOCK = 'MAP_PAGE_DATA_LOADED';
 
       ];
 
-      
+
 
       let results = [];
 
-      
+
 
       // Try each search query until we get results
 
@@ -646,7 +647,7 @@ const GLOBAL_FETCH_LOCK = 'MAP_PAGE_DATA_LOADED';
 
         const lng = parseFloat(result.lon);
 
-        
+
 
         setMapCenter([lat, lng]);
 
@@ -666,7 +667,7 @@ const GLOBAL_FETCH_LOCK = 'MAP_PAGE_DATA_LOADED';
 
         ];
 
-        
+
 
         for (const barangayQuery of barangayQueries) {
 
@@ -700,7 +701,7 @@ const GLOBAL_FETCH_LOCK = 'MAP_PAGE_DATA_LOADED';
 
               const lng = parseFloat(result.lon);
 
-              
+
 
               setMapCenter([lat, lng]);
 
@@ -830,7 +831,7 @@ const GLOBAL_FETCH_LOCK = 'MAP_PAGE_DATA_LOADED';
 
       console.log('Saving hazard:', hazardData);
 
-      const response = await axios.post('http://localhost/gsm/backend/api/hes/hazards.php', {
+      const response = await axios.post(`${API_BASE_URL}/api/hes/hazards.php`, {
 
         lat: hazardData.position.lat,
 
@@ -878,7 +879,7 @@ const GLOBAL_FETCH_LOCK = 'MAP_PAGE_DATA_LOADED';
 
       console.log('Saving evacuation:', evacuationData);
 
-      const response = await axios.post('http://localhost/gsm/backend/api/hes/evacuations.php', {
+      const response = await axios.post(`${API_BASE_URL}/api/hes/evacuations.php`, {
 
         lat: evacuationData.position.lat,
 
@@ -928,7 +929,7 @@ const GLOBAL_FETCH_LOCK = 'MAP_PAGE_DATA_LOADED';
       setManualHazards(prev => prev.filter(hazard => hazard.id !== id));
 
       // Then sync with backend
-      await axios.delete(`http://localhost/gsm/backend/api/hes/hazards.php?id=${id}`);
+      await axios.delete(`${API_BASE_URL}/api/hes/hazards.php?id=${id}`);
 
       // Optional: Refresh to ensure consistency
       // fetchManualHazards(true);
@@ -943,7 +944,7 @@ const GLOBAL_FETCH_LOCK = 'MAP_PAGE_DATA_LOADED';
 
   };
 
-  
+
 
   const deleteEvacuation = async (id) => {
 
@@ -953,7 +954,7 @@ const GLOBAL_FETCH_LOCK = 'MAP_PAGE_DATA_LOADED';
       setManualEvacuations(prev => prev.filter(evac => evac.id !== id));
 
       // Then sync with backend
-      await axios.delete(`http://localhost/gsm/backend/api/hes/evacuations.php?id=${id}`);
+      await axios.delete(`${API_BASE_URL}/api/hes/evacuations.php?id=${id}`);
 
       // Optional: Refresh to ensure consistency
       // fetchManualEvacuations(true);
@@ -968,7 +969,7 @@ const GLOBAL_FETCH_LOCK = 'MAP_PAGE_DATA_LOADED';
 
   };
 
-  
+
 
   const deleteAutoHazard = (id) => {
 
@@ -985,12 +986,12 @@ const GLOBAL_FETCH_LOCK = 'MAP_PAGE_DATA_LOADED';
     try {
 
       // Optimistic update - update local state immediately
-      setManualHazards(prev => prev.map(hazard => 
+      setManualHazards(prev => prev.map(hazard =>
         hazard.id === id ? { ...hazard, category } : hazard
       ));
 
       // Then sync with backend
-      const response = await axios.put(`http://localhost/gsm/backend/api/hes/hazards.php?id=${id}`, { category });
+      const response = await axios.put(`${API_BASE_URL}/api/hes/hazards.php?id=${id}`, { category });
       console.log('Category update response:', response.data);
 
     } catch (error) {
@@ -1010,12 +1011,12 @@ const GLOBAL_FETCH_LOCK = 'MAP_PAGE_DATA_LOADED';
     try {
 
       // Optimistic update - update local state immediately
-      setManualHazards(prev => prev.map(hazard => 
+      setManualHazards(prev => prev.map(hazard =>
         hazard.id === id ? { ...hazard, severity } : hazard
       ));
 
       // Then sync with backend
-      await axios.put(`http://localhost/gsm/backend/api/hes/hazards.php?id=${id}`, { severity });
+      await axios.put(`${API_BASE_URL}/api/hes/hazards.php?id=${id}`, { severity });
 
       // Optional: Refresh to ensure consistency
       // fetchManualHazards(true);
@@ -1037,12 +1038,12 @@ const GLOBAL_FETCH_LOCK = 'MAP_PAGE_DATA_LOADED';
     try {
 
       // Optimistic update - update local state immediately
-      setManualEvacuations(prev => prev.map(evac => 
+      setManualEvacuations(prev => prev.map(evac =>
         evac.id === id ? { ...evac, capacity: parseInt(capacity) } : evac
       ));
 
       // Then sync with backend
-      await axios.put(`http://localhost/gsm/backend/api/hes/evacuations.php?id=${id}`, { capacity: parseInt(capacity) });
+      await axios.put(`${API_BASE_URL}/api/hes/evacuations.php?id=${id}`, { capacity: parseInt(capacity) });
 
       // Optional: Refresh to ensure consistency
       // fetchManualEvacuations(true);
@@ -1064,12 +1065,12 @@ const GLOBAL_FETCH_LOCK = 'MAP_PAGE_DATA_LOADED';
     try {
 
       // Optimistic update - update local state immediately
-      setManualEvacuations(prev => prev.map(evac => 
+      setManualEvacuations(prev => prev.map(evac =>
         evac.id === id ? { ...evac, status } : evac
       ));
 
       // Then sync with backend
-      await axios.put(`http://localhost/gsm/backend/api/hes/evacuations.php?id=${id}`, { status });
+      await axios.put(`${API_BASE_URL}/api/hes/evacuations.php?id=${id}`, { status });
 
       // Optional: Refresh to ensure consistency
       // fetchManualEvacuations(true);
@@ -1170,7 +1171,7 @@ const GLOBAL_FETCH_LOCK = 'MAP_PAGE_DATA_LOADED';
 
         console.log('Placing hazard:', placingHazard, 'Placing evacuation:', placingEvacuation);
 
-        
+
 
         if (isDrawingFlood) {
 
@@ -1196,7 +1197,7 @@ const GLOBAL_FETCH_LOCK = 'MAP_PAGE_DATA_LOADED';
 
           };
 
-          
+
 
           console.log('Creating hazard:', newHazard);
 
@@ -1222,7 +1223,7 @@ const GLOBAL_FETCH_LOCK = 'MAP_PAGE_DATA_LOADED';
 
           };
 
-          
+
 
           console.log('Creating evacuation:', newEvac);
 
@@ -1298,11 +1299,11 @@ const GLOBAL_FETCH_LOCK = 'MAP_PAGE_DATA_LOADED';
 
       rows.push([
 
-        "Evacuation", 
+        "Evacuation",
 
-        e.position.lat, 
+        e.position.lat,
 
-        e.position.lng, 
+        e.position.lng,
 
         "Center",
 
@@ -1352,7 +1353,7 @@ const GLOBAL_FETCH_LOCK = 'MAP_PAGE_DATA_LOADED';
 
     const randomType = hazardTypes[Math.floor(Math.random() * hazardTypes.length)];
 
-    
+
 
     if (reports >= 10) {
 
@@ -1386,7 +1387,7 @@ const GLOBAL_FETCH_LOCK = 'MAP_PAGE_DATA_LOADED';
 
 
 
-  
+
 
   // Static demo data (can later be wired to API)
 
@@ -1396,7 +1397,7 @@ const GLOBAL_FETCH_LOCK = 'MAP_PAGE_DATA_LOADED';
 
 
 
-  
+
 
   return (
 
@@ -1488,7 +1489,7 @@ const GLOBAL_FETCH_LOCK = 'MAP_PAGE_DATA_LOADED';
 
           </h3>
 
-          
+
 
           <div className="space-y-1">
 
@@ -1510,17 +1511,13 @@ const GLOBAL_FETCH_LOCK = 'MAP_PAGE_DATA_LOADED';
 
                 />
 
-                <div className={`w-8 h-4 rounded-full transition-colors ${
+                <div className={`w-8 h-4 rounded-full transition-colors ${activeLayer.flood ? 'bg-blue-500' : 'bg-gray-300'
 
-                  activeLayer.flood ? 'bg-blue-500' : 'bg-gray-300'
+                  }`}>
 
-                }`}>
+                  <div className={`w-3 h-3 bg-white rounded-full shadow-md transform transition-transform ${activeLayer.flood ? 'translate-x-4' : 'translate-x-0.5'
 
-                  <div className={`w-3 h-3 bg-white rounded-full shadow-md transform transition-transform ${
-
-                    activeLayer.flood ? 'translate-x-4' : 'translate-x-0.5'
-
-                  }`}></div>
+                    }`}></div>
 
                 </div>
 
@@ -1548,17 +1545,13 @@ const GLOBAL_FETCH_LOCK = 'MAP_PAGE_DATA_LOADED';
 
                 />
 
-                <div className={`w-8 h-4 rounded-full transition-colors ${
+                <div className={`w-8 h-4 rounded-full transition-colors ${activeLayer.fire ? 'bg-orange-500' : 'bg-gray-300'
 
-                  activeLayer.fire ? 'bg-orange-500' : 'bg-gray-300'
+                  }`}>
 
-                }`}>
+                  <div className={`w-3 h-3 bg-white rounded-full shadow-md transform transition-transform ${activeLayer.fire ? 'translate-x-4' : 'translate-x-0.5'
 
-                  <div className={`w-3 h-3 bg-white rounded-full shadow-md transform transition-transform ${
-
-                    activeLayer.fire ? 'translate-x-4' : 'translate-x-0.5'
-
-                  }`}></div>
+                    }`}></div>
 
                 </div>
 
@@ -1586,17 +1579,13 @@ const GLOBAL_FETCH_LOCK = 'MAP_PAGE_DATA_LOADED';
 
                 />
 
-                <div className={`w-8 h-4 rounded-full transition-colors ${
+                <div className={`w-8 h-4 rounded-full transition-colors ${activeLayer.earthquake ? 'bg-purple-500' : 'bg-gray-300'
 
-                  activeLayer.earthquake ? 'bg-purple-500' : 'bg-gray-300'
+                  }`}>
 
-                }`}>
+                  <div className={`w-3 h-3 bg-white rounded-full shadow-md transform transition-transform ${activeLayer.earthquake ? 'translate-x-4' : 'translate-x-0.5'
 
-                  <div className={`w-3 h-3 bg-white rounded-full shadow-md transform transition-transform ${
-
-                    activeLayer.earthquake ? 'translate-x-4' : 'translate-x-0.5'
-
-                  }`}></div>
+                    }`}></div>
 
                 </div>
 
@@ -1624,17 +1613,13 @@ const GLOBAL_FETCH_LOCK = 'MAP_PAGE_DATA_LOADED';
 
                 />
 
-                <div className={`w-8 h-4 rounded-full transition-colors ${
+                <div className={`w-8 h-4 rounded-full transition-colors ${activeLayer.evacuation ? 'bg-green-500' : 'bg-gray-300'
 
-                  activeLayer.evacuation ? 'bg-green-500' : 'bg-gray-300'
+                  }`}>
 
-                }`}>
+                  <div className={`w-3 h-3 bg-white rounded-full shadow-md transform transition-transform ${activeLayer.evacuation ? 'translate-x-4' : 'translate-x-0.5'
 
-                  <div className={`w-3 h-3 bg-white rounded-full shadow-md transform transition-transform ${
-
-                    activeLayer.evacuation ? 'translate-x-4' : 'translate-x-0.5'
-
-                  }`}></div>
+                    }`}></div>
 
                 </div>
 
@@ -1662,17 +1647,13 @@ const GLOBAL_FETCH_LOCK = 'MAP_PAGE_DATA_LOADED';
 
                 />
 
-                <div className={`w-8 h-4 rounded-full transition-colors ${
+                <div className={`w-8 h-4 rounded-full transition-colors ${activeLayer.roadAccident ? 'bg-red-600' : 'bg-gray-300'
 
-                  activeLayer.roadAccident ? 'bg-red-600' : 'bg-gray-300'
+                  }`}>
 
-                }`}>
+                  <div className={`w-3 h-3 bg-white rounded-full shadow-md transform transition-transform ${activeLayer.roadAccident ? 'translate-x-4' : 'translate-x-0.5'
 
-                  <div className={`w-3 h-3 bg-white rounded-full shadow-md transform transition-transform ${
-
-                    activeLayer.roadAccident ? 'translate-x-4' : 'translate-x-0.5'
-
-                  }`}></div>
+                    }`}></div>
 
                 </div>
 
@@ -1698,17 +1679,13 @@ const GLOBAL_FETCH_LOCK = 'MAP_PAGE_DATA_LOADED';
 
                 />
 
-                <div className={`w-8 h-4 rounded-full transition-colors ${
+                <div className={`w-8 h-4 rounded-full transition-colors ${activeLayer.powerOutage ? 'bg-yellow-500' : 'bg-gray-300'
 
-                  activeLayer.powerOutage ? 'bg-yellow-500' : 'bg-gray-300'
+                  }`}>
 
-                }`}>
+                  <div className={`w-3 h-3 bg-white rounded-full shadow-md transform transition-transform ${activeLayer.powerOutage ? 'translate-x-4' : 'translate-x-0.5'
 
-                  <div className={`w-3 h-3 bg-white rounded-full shadow-md transform transition-transform ${
-
-                    activeLayer.powerOutage ? 'translate-x-4' : 'translate-x-0.5'
-
-                  }`}></div>
+                    }`}></div>
 
                 </div>
 
@@ -1752,9 +1729,9 @@ const GLOBAL_FETCH_LOCK = 'MAP_PAGE_DATA_LOADED';
 
 
 
-        
 
-        
+
+
 
         {/* Instructions */}
 
@@ -1764,15 +1741,15 @@ const GLOBAL_FETCH_LOCK = 'MAP_PAGE_DATA_LOADED';
 
             <p className="text-xs text-yellow-800">
 
-              {placingHazard 
-
-                ? "Click map to place." 
-
-                : placingEvacuation
+              {placingHazard
 
                 ? "Click map to place."
 
-                : "Click map to add vertices."
+                : placingEvacuation
+
+                  ? "Click map to place."
+
+                  : "Click map to add vertices."
 
               }
 
@@ -1928,7 +1905,7 @@ const GLOBAL_FETCH_LOCK = 'MAP_PAGE_DATA_LOADED';
 
                       <p className="text-sm">Type: {hazard.category}</p>
 
-                      
+
                     </div>
 
                   </Popup>
@@ -1947,7 +1924,7 @@ const GLOBAL_FETCH_LOCK = 'MAP_PAGE_DATA_LOADED';
 
               const getCategoryStyle = (category) => {
 
-                switch(category?.toLowerCase()) {
+                switch (category?.toLowerCase()) {
 
                   case 'flood':
 
@@ -1990,7 +1967,7 @@ const GLOBAL_FETCH_LOCK = 'MAP_PAGE_DATA_LOADED';
               const categoryStyle = getCategoryStyle(hazard.category);
 
               // Check if this hazard should be visible based on layer settings
-              const isVisible = 
+              const isVisible =
                 (hazard.category?.toLowerCase() === 'flood' && activeLayer.flood) ||
                 (hazard.category?.toLowerCase() === 'fire' && activeLayer.fire) ||
                 (hazard.category?.toLowerCase() === 'earthquake' && activeLayer.earthquake) ||
@@ -2055,7 +2032,7 @@ const GLOBAL_FETCH_LOCK = 'MAP_PAGE_DATA_LOADED';
 
                       )}
 
-                      
+
                     </div>
 
                   </Popup>
@@ -2087,19 +2064,18 @@ const GLOBAL_FETCH_LOCK = 'MAP_PAGE_DATA_LOADED';
                       <h3 className="font-bold text-green-600">Evacuation Center</h3>
                       <p className="text-sm font-medium">{evac.name}</p>
                       <p className="text-sm">Capacity: {evac.capacity}</p>
-                      <p className="text-sm">Status: 
-                        <span className={`ml-1 px-2 py-1 rounded text-xs ${
-                          evac.status === 'Available' 
-                            ? 'bg-green-100 text-green-800' 
-                            : 'bg-red-100 text-red-800'
-                        }`}>
+                      <p className="text-sm">Status:
+                        <span className={`ml-1 px-2 py-1 rounded text-xs ${evac.status === 'Available'
+                          ? 'bg-green-100 text-green-800'
+                          : 'bg-red-100 text-red-800'
+                          }`}>
                           {evac.status}
                         </span>
                       </p>
                       <p className="text-xs text-gray-500">
                         {new Date(evac.timestamp).toLocaleString()}
                       </p>
-                      
+
                     </div>
                   </Popup>
                 </Marker>
@@ -2189,7 +2165,7 @@ const GLOBAL_FETCH_LOCK = 'MAP_PAGE_DATA_LOADED';
 
                       <p className="text-sm">Flood Zone #{idx + 1}</p>
 
-                      
+
                     </div>
 
                   </Popup>
@@ -2310,7 +2286,7 @@ const GLOBAL_FETCH_LOCK = 'MAP_PAGE_DATA_LOADED';
 
 
 
-          </div>
+    </div>
 
   );
 

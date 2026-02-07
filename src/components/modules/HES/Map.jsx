@@ -17,6 +17,7 @@ import {
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import axios from "axios";
+import { API_BASE_URL } from '../../../config';
 
 
 // Fix Leaflet default icons
@@ -62,12 +63,12 @@ export default function HazardMapUI() {
   // Fetch functions
   const fetchManualEvacuations = async () => {
     try {
-      const response = await axios.get('http://localhost/gsm/backend/api/hes/evacuations.php');
+      const response = await axios.get(`${API_BASE_URL}/api/hes/evacuations.php`);
       console.log('Evacuations API Response:', response.data);
-      
+
       // Check if response.data is an array, if not, use empty array
       const data = Array.isArray(response.data) ? response.data : [];
-      
+
       const formattedData = data.map(e => ({
         id: e.id,
         position: { lat: parseFloat(e.lat), lng: parseFloat(e.lng) },
@@ -87,12 +88,12 @@ export default function HazardMapUI() {
 
   const fetchManualHazards = async () => {
     try {
-      const response = await axios.get('http://localhost/gsm/backend/api/hes/hazards.php');
+      const response = await axios.get(`${API_BASE_URL}/api/hes/hazards.php`);
       console.log('Hazards API Response:', response.data);
-      
+
       // Check if response.data is an array, if not, use empty array
       const data = Array.isArray(response.data) ? response.data : [];
-      
+
       const formattedData = data.map(h => ({
         id: h.id,
         position: { lat: parseFloat(h.lat), lng: parseFloat(h.lng) },
@@ -151,10 +152,10 @@ export default function HazardMapUI() {
 
   const toggleAllLayers = () => {
     const allEnabled = Object.values(activeLayer).every(Boolean);
-    const newState = allEnabled ? 
+    const newState = allEnabled ?
       { flood: false, earthquake: false, evacuation: false, fire: false, roadAccident: false, powerOutage: false } :
       { flood: true, earthquake: true, evacuation: true, fire: true, roadAccident: true, powerOutage: true };
-    
+
     setActiveLayer(newState);
     // Save to localStorage
     try {
@@ -196,9 +197,9 @@ export default function HazardMapUI() {
         `${query}, Quezon City, Philippines`,
         `${query}, Metro Manila, Philippines`
       ];
-      
+
       let results = [];
-      
+
       // Try each search query until we get results
       for (const searchQuery of searchQueries) {
         const response = await fetch(
@@ -223,7 +224,7 @@ export default function HazardMapUI() {
         const result = results[0]; // Take the first result
         const lat = parseFloat(result.lat);
         const lng = parseFloat(result.lon);
-        
+
         setMapCenter([lat, lng]);
         setMapZoom(16);
         setSearchMarker({ lat, lng, name: result.display_name || query });
@@ -233,7 +234,7 @@ export default function HazardMapUI() {
           `${query} barangay, Caloocan, Philippines`,
           `${query} barangay, Quezon City, Philippines`
         ];
-        
+
         for (const barangayQuery of barangayQueries) {
           const response = await fetch(
             `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(barangayQuery)}&limit=3`,
@@ -250,7 +251,7 @@ export default function HazardMapUI() {
               const result = barangayResults[0];
               const lat = parseFloat(result.lat);
               const lng = parseFloat(result.lon);
-              
+
               setMapCenter([lat, lng]);
               setMapZoom(16);
               setSearchMarker({ lat, lng, name: result.display_name || query });
@@ -309,7 +310,7 @@ export default function HazardMapUI() {
     }
     // In a real app, this would create a new alert
   };
-  
+
   // Play an alert tone using Web Audio API (no external file needed)
   const playAlertSound = () => {
     try {
@@ -334,7 +335,7 @@ export default function HazardMapUI() {
       osc.stop(now + 0.72);
       // Close context after sound to release resources
       osc.onended = () => {
-        try { ctx.close(); } catch (_) {}
+        try { ctx.close(); } catch (_) { }
       };
     } catch (_) {
       // noop if audio fails (browser gesture restrictions, etc.)
@@ -390,8 +391,8 @@ export default function HazardMapUI() {
           osc1.stop(ctx.currentTime + 0.15);
           osc2.stop(ctx.currentTime + 0.15);
           lfo.stop(ctx.currentTime + 0.15);
-          setTimeout(() => { try { ctx.close(); } catch (_) {} }, 250);
-        } catch (_) {}
+          setTimeout(() => { try { ctx.close(); } catch (_) { } }, 250);
+        } catch (_) { }
         emergencyCtxRef.current = null;
         emergencyStopRef.current = null;
       };
@@ -411,7 +412,7 @@ export default function HazardMapUI() {
   const stopEmergencySiren = () => {
     try {
       if (emergencyStopRef.current) emergencyStopRef.current();
-    } catch (_) {}
+    } catch (_) { }
   };
 
   // ========== DATA PERSISTENCE ==========
@@ -426,7 +427,7 @@ export default function HazardMapUI() {
       floodPolygons,
       timestamp: new Date().toISOString()
     };
-    
+
     localStorage.setItem('hazardMapData', JSON.stringify(mapData));
     setSavedData(mapData);
   };
@@ -519,7 +520,7 @@ export default function HazardMapUI() {
       const lngs = allMarkers.map(m => m[1]);
       const centerLat = (Math.max(...lats) + Math.min(...lats)) / 2;
       const centerLng = (Math.max(...lngs) + Math.min(...lngs)) / 2;
-      
+
       setMapCenter([centerLat, centerLng]);
       setMapZoom(11);
     }
@@ -577,7 +578,7 @@ export default function HazardMapUI() {
       click: async (e) => {
         console.log('Map clicked at:', e.latlng);
         console.log('Placing hazard:', placingHazard, 'Placing evacuation:', placingEvacuation);
-        
+
         if (isDrawingFlood) {
           setCurrentFloodVertices(prev => [...prev, e.latlng]);
           return;
@@ -590,7 +591,7 @@ export default function HazardMapUI() {
             notes: "",
             timestamp: new Date().toISOString()
           };
-          
+
           console.log('Creating hazard:', newHazard);
           // Save to database
           await saveManualHazard(newHazard);
@@ -603,7 +604,7 @@ export default function HazardMapUI() {
             status: "Available",
             timestamp: new Date().toISOString()
           };
-          
+
           console.log('Creating evacuation:', newEvac);
           // Save to database
           await saveManualEvacuation(newEvac);
@@ -641,9 +642,9 @@ export default function HazardMapUI() {
 
     manualEvacuations.forEach((e) =>
       rows.push([
-        "Evacuation", 
-        e.position.lat, 
-        e.position.lng, 
+        "Evacuation",
+        e.position.lat,
+        e.position.lng,
         "Center",
         new Date().toISOString()
       ])
@@ -668,7 +669,7 @@ export default function HazardMapUI() {
     const reports = Math.floor(Math.random() * 20); // simulate 0-20 reports
     const hazardTypes = ["Flood", "Fire", "Earthquake", "Road Accident", "Power Outage"];
     const randomType = hazardTypes[Math.floor(Math.random() * hazardTypes.length)];
-    
+
     if (reports >= 10) {
       const newHazard = {
         id: Date.now(),
@@ -705,7 +706,7 @@ export default function HazardMapUI() {
   const saveManualHazard = async (hazardData) => {
     try {
       console.log('Saving hazard:', hazardData);
-      const response = await axios.post('http://localhost/gsm/backend/api/hes/hazards.php', {
+      const response = await axios.post(`${API_BASE_URL}/api/hes/hazards.php`, {
         lat: hazardData.position.lat,
         lng: hazardData.position.lng,
         category: hazardData.category,
@@ -729,7 +730,7 @@ export default function HazardMapUI() {
   const saveManualEvacuation = async (evacuationData) => {
     try {
       console.log('Saving evacuation:', evacuationData);
-      const response = await axios.post('http://localhost/gsm/backend/api/hes/evacuations.php', {
+      const response = await axios.post(`${API_BASE_URL}/api/hes/evacuations.php`, {
         lat: evacuationData.position.lat,
         lng: evacuationData.position.lng,
         name: evacuationData.name,
@@ -752,22 +753,22 @@ export default function HazardMapUI() {
   // Enhanced Delete functions with notifications
   const deleteHazard = async (id) => {
     try {
-      await axios.delete(`http://localhost/gsm/backend/api/hes/hazards.php?id=${id}`);
+      await axios.delete(`${API_BASE_URL}/api/hes/hazards.php?id=${id}`);
       fetchManualHazards();
     } catch (error) {
       console.error('Error deleting hazard:', error);
     }
   };
-  
+
   const deleteEvacuation = async (id) => {
     try {
-      await axios.delete(`http://localhost/gsm/backend/api/hes/evacuations.php?id=${id}`);
+      await axios.delete(`${API_BASE_URL}/api/hes/evacuations.php?id=${id}`);
       fetchManualEvacuations();
     } catch (error) {
       console.error('Error deleting evacuation:', error);
     }
   };
-  
+
   const deleteAutoHazard = (id) => {
     setAutoHazards((prev) => prev.filter((h) => h.id !== id));
   };
@@ -775,7 +776,7 @@ export default function HazardMapUI() {
   // Enhanced Update hazard category
   const updateHazardCategory = async (id, category) => {
     try {
-      await axios.put(`http://localhost/gsm/backend/api/hes/hazards.php?id=${id}`, { category });
+      await axios.put(`${API_BASE_URL}/api/hes/hazards.php?id=${id}`, { category });
       fetchManualHazards();
     } catch (error) {
       console.error('Error updating category:', error);
@@ -784,7 +785,7 @@ export default function HazardMapUI() {
 
   const updateHazardSeverity = async (id, severity) => {
     try {
-      await axios.put(`http://localhost/gsm/backend/api/hes/hazards.php?id=${id}`, { severity });
+      await axios.put(`${API_BASE_URL}/api/hes/hazards.php?id=${id}`, { severity });
       fetchManualHazards();
     } catch (error) {
       console.error('Error updating severity:', error);
@@ -793,7 +794,7 @@ export default function HazardMapUI() {
 
   const updateEvacuationCapacity = async (id, capacity) => {
     try {
-      await axios.put(`http://localhost/gsm/backend/api/hes/evacuations.php?id=${id}`, { capacity: parseInt(capacity) });
+      await axios.put(`${API_BASE_URL}/api/hes/evacuations.php?id=${id}`, { capacity: parseInt(capacity) });
       fetchManualEvacuations();
     } catch (error) {
       console.error('Error updating capacity:', error);
@@ -802,7 +803,7 @@ export default function HazardMapUI() {
 
   const updateEvacuationStatus = async (id, status) => {
     try {
-      await axios.put(`http://localhost/gsm/backend/api/hes/evacuations.php?id=${id}`, { status });
+      await axios.put(`${API_BASE_URL}/api/hes/evacuations.php?id=${id}`, { status });
       fetchManualEvacuations();
     } catch (error) {
       console.error('Error updating status:', error);
@@ -823,9 +824,8 @@ export default function HazardMapUI() {
         <div className="flex flex-wrap items-center gap-2">
           <button
             onClick={startPlacingHazard}
-            className={`flex items-center gap-2 text-white px-3 py-2 rounded-lg shadow-sm text-sm transition-colors ${
-              placingHazard ? "bg-red-800" : "bg-red-600 hover:bg-red-700"
-            }`}
+            className={`flex items-center gap-2 text-white px-3 py-2 rounded-lg shadow-sm text-sm transition-colors ${placingHazard ? "bg-red-800" : "bg-red-600 hover:bg-red-700"
+              }`}
             title="Click to place a manual hazard marker"
           >
             + Manual Hazard
@@ -833,9 +833,8 @@ export default function HazardMapUI() {
 
           <button
             onClick={startPlacingEvacuation}
-            className={`flex items-center gap-2 text-white px-3 py-2 rounded-lg shadow-sm text-sm transition-colors ${
-              placingEvacuation ? "bg-indigo-800" : "bg-indigo-600 hover:bg-indigo-700"
-            }`}
+            className={`flex items-center gap-2 text-white px-3 py-2 rounded-lg shadow-sm text-sm transition-colors ${placingEvacuation ? "bg-indigo-800" : "bg-indigo-600 hover:bg-indigo-700"
+              }`}
             title="Click to place an evacuation center"
           >
             + Evacuation
@@ -937,11 +936,10 @@ export default function HazardMapUI() {
                     {layer.label}
                   </div>
                   <ToggleRight
-                    className={`cursor-pointer ${
-                      activeLayer[layer.key]
-                        ? "text-green-600"
-                        : "text-gray-400 dark:text-gray-300"
-                    }`}
+                    className={`cursor-pointer ${activeLayer[layer.key]
+                      ? "text-green-600"
+                      : "text-gray-400 dark:text-gray-300"
+                      }`}
                     onClick={() => toggleLayer(layer.key)}
                   />
                 </label>
@@ -1016,8 +1014,8 @@ export default function HazardMapUI() {
                       <small>Detected: {new Date(hz.timestamp).toLocaleString()}</small>
                     </div>
                     <div className="flex gap-2">
-                    <button
-                      onClick={() => deleteAutoHazard(hz.id)}
+                      <button
+                        onClick={() => deleteAutoHazard(hz.id)}
                         className="bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded text-xs transition-colors"
                         title="Delete this hazard"
                       >
@@ -1029,7 +1027,7 @@ export default function HazardMapUI() {
                         title="Copy hazard details"
                       >
                         📋 Copy
-                    </button>
+                      </button>
                     </div>
                   </div>
                 </Popup>
@@ -1048,59 +1046,59 @@ export default function HazardMapUI() {
                 return true; // Show if not filtered out
               })
               .map((hz) => (
-              <Marker key={hz.id} position={hz.position}>
-                <Popup>
-                  <div className="space-y-3 min-w-[250px]">
-                    <div className="border-b pb-2">
-                      <strong>⚠️ Manual Hazard</strong> <br />
-                      <small>Added: {new Date(hz.timestamp).toLocaleString()}</small><br />
-                      <small>Location: ({hz.position.lat.toFixed(4)}, {hz.position.lng.toFixed(4)})</small>
-                    </div>
-                    
-                  <div className="space-y-2">
-                    <div>
-                        <label className="block text-xs font-medium">Category:</label>
-                      <select
-                          className="w-full border rounded p-1 text-sm"
-                        value={hz.category}
-                          onChange={(e) => updateHazardCategory(hz.id, e.target.value)}
-                      >
-                        <option>Flood</option>
-                        <option>Earthquake</option>
-                        <option>Fire</option>
-                        <option>Road Accident</option>
-                        <option>Power Outage</option>
-                      </select>
-                    </div>
-                      
-                      <div>
-                        <label className="block text-xs font-medium">Severity:</label>
-                        <select
-                          className="w-full border rounded p-1 text-sm"
-                          value={hz.severity || "Moderate"}
-                          onChange={(e) => updateHazardSeverity(hz.id, e.target.value)}
+                <Marker key={hz.id} position={hz.position}>
+                  <Popup>
+                    <div className="space-y-3 min-w-[250px]">
+                      <div className="border-b pb-2">
+                        <strong>⚠️ Manual Hazard</strong> <br />
+                        <small>Added: {new Date(hz.timestamp).toLocaleString()}</small><br />
+                        <small>Location: ({hz.position.lat.toFixed(4)}, {hz.position.lng.toFixed(4)})</small>
+                      </div>
+
+                      <div className="space-y-2">
+                        <div>
+                          <label className="block text-xs font-medium">Category:</label>
+                          <select
+                            className="w-full border rounded p-1 text-sm"
+                            value={hz.category}
+                            onChange={(e) => updateHazardCategory(hz.id, e.target.value)}
+                          >
+                            <option>Flood</option>
+                            <option>Earthquake</option>
+                            <option>Fire</option>
+                            <option>Road Accident</option>
+                            <option>Power Outage</option>
+                          </select>
+                        </div>
+
+                        <div>
+                          <label className="block text-xs font-medium">Severity:</label>
+                          <select
+                            className="w-full border rounded p-1 text-sm"
+                            value={hz.severity || "Moderate"}
+                            onChange={(e) => updateHazardSeverity(hz.id, e.target.value)}
+                          >
+                            <option>Low</option>
+                            <option>Moderate</option>
+                            <option>High</option>
+                            <option>Critical</option>
+                          </select>
+                        </div>
+                      </div>
+
+                      <div className="flex gap-2 pt-2">
+                        <button
+                          onClick={() => deleteHazard(hz.id)}
+                          className="bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded text-xs transition-colors"
+                          title="Delete this hazard"
                         >
-                          <option>Low</option>
-                          <option>Moderate</option>
-                          <option>High</option>
-                          <option>Critical</option>
-                        </select>
+                          🗑️ Delete
+                        </button>
                       </div>
                     </div>
-                    
-                    <div className="flex gap-2 pt-2">
-                    <button
-                      onClick={() => deleteHazard(hz.id)}
-                        className="bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded text-xs transition-colors"
-                        title="Delete this hazard"
-                      >
-                        🗑️ Delete
-                      </button>
-                    </div>
-                  </div>
-                </Popup>
-              </Marker>
-            ))}
+                  </Popup>
+                </Marker>
+              ))}
 
             {/* Manual Evacuations */}
             {console.log('Rendering manual evacuations:', manualEvacuations)}
@@ -1113,7 +1111,7 @@ export default function HazardMapUI() {
                       <small>Added: {new Date(ev.timestamp).toLocaleString()}</small><br />
                       <small>Location: ({ev.position.lat.toFixed(4)}, {ev.position.lng.toFixed(4)})</small>
                     </div>
-                    
+
                     <div className="space-y-2">
                       <div>
                         <label className="block text-xs font-medium">Capacity:</label>
@@ -1126,7 +1124,7 @@ export default function HazardMapUI() {
                           max="10000"
                         />
                       </div>
-                      
+
                       <div>
                         <label className="block text-xs font-medium">Status:</label>
                         <select
@@ -1134,7 +1132,7 @@ export default function HazardMapUI() {
                           value={ev.status || "Available"}
                           onChange={async (e) => {
                             try {
-                              await axios.put(`http://localhost/gsm/backend/api/hes/evacuations.php?id=${ev.id}`, { status: e.target.value });
+                              await axios.put(`${API_BASE_URL}/api/hes/evacuations.php?id=${ev.id}`, { status: e.target.value });
                               fetchManualEvacuations();
                             } catch (error) {
                               console.error('Error updating status:', error);
@@ -1148,24 +1146,24 @@ export default function HazardMapUI() {
                         </select>
                       </div>
                     </div>
-                    
+
                     <div className="flex gap-2 pt-2">
-                  <button
-                    onClick={() => deleteEvacuation(ev.id)}
+                      <button
+                        onClick={() => deleteEvacuation(ev.id)}
                         className="bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded text-xs transition-colors"
                         title="Delete evacuation center"
-                  >
+                      >
                         🗑️ Delete
-                  </button>
+                      </button>
                       <button
-                        onClick={() => {}}
+                        onClick={() => { }}
                         className="bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 rounded text-xs transition-colors"
                         title="Copy center details"
                       >
                         📋 Copy
                       </button>
                       <button
-                        onClick={() => {}}
+                        onClick={() => { }}
                         className="bg-green-500 hover:bg-green-600 text-white px-2 py-1 rounded text-xs transition-colors"
                         title="Activate center"
                       >

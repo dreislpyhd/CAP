@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import axios from 'axios';
+import { API_BASE_URL } from '../../config';
 import { Calendar, ChevronLeft, ChevronRight, Plus, Clock, MapPin, Users, ChevronDown, ChevronUp } from 'lucide-react';
 
 const CalendarPage = () => {
@@ -15,7 +16,7 @@ const CalendarPage = () => {
   const fetchEvents = async () => {
     try {
       console.log('CalendarPage: Fetching events from API...');
-      const response = await axios.get('http://localhost/gsm/backend/api/coordination/training.php');
+      const response = await axios.get(`${API_BASE_URL}/api/coordination/training.php`);
       console.log('CalendarPage: API Response:', response.data);
       if (response.data.success) {
         setEvents(response.data.data || []);
@@ -31,10 +32,10 @@ const CalendarPage = () => {
 
   useEffect(() => {
     fetchEvents();
-    
+
     // Set up auto-refresh every 30 seconds to sync with TDS.jsx
     const interval = setInterval(fetchEvents, 30000);
-    
+
     return () => clearInterval(interval);
   }, []);
 
@@ -182,9 +183,8 @@ const CalendarPage = () => {
               {calendar.map((day, index) => (
                 <div
                   key={index}
-                  className={`min-h-[80px] p-2 border border-gray-200 rounded cursor-pointer hover:bg-gray-50 ${
-                    day ? '' : 'bg-gray-50'
-                  } ${day && isToday(day.date) ? 'bg-blue-100' : ''}`}
+                  className={`min-h-[80px] p-2 border border-gray-200 rounded cursor-pointer hover:bg-gray-50 ${day ? '' : 'bg-gray-50'
+                    } ${day && isToday(day.date) ? 'bg-blue-100' : ''}`}
                   onClick={() => day && handleDateClick(day.date)}
                 >
                   {day && (
@@ -219,7 +219,7 @@ const CalendarPage = () => {
         {/* Upcoming Events Sidebar */}
         <div className="lg:col-span-1">
           <div className="bg-white rounded-lg shadow p-6">
-            <div 
+            <div
               className="flex justify-between items-center mb-4 cursor-pointer hover:bg-gray-50 p-2 rounded transition-colors"
               onClick={() => setIsUpcomingEventsCollapsed(!isUpcomingEventsCollapsed)}
             >
@@ -232,13 +232,13 @@ const CalendarPage = () => {
                 )}
               </div>
             </div>
-            
+
             {!isUpcomingEventsCollapsed && (
               <div className="space-y-3">
                 {getUpcomingEvents.length > 0 ? (
                   getUpcomingEvents.map(event => (
-                    <div 
-                      key={event.id} 
+                    <div
+                      key={event.id}
                       className="border border-gray-200 rounded-lg p-3 cursor-pointer hover:bg-gray-50 transition-colors"
                       onClick={() => handleEventClick(event)}
                     >

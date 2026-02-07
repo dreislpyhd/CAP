@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { User as UserIcon, Save, Eye, EyeOff, Key, Mail, Shield } from 'lucide-react';
+import { API_BASE_URL } from '../../../config';
 
 function Settings() {
     const [credentials, setCredentials] = useState({
@@ -8,13 +9,13 @@ function Settings() {
         newPassword: '',
         confirmPassword: ''
     });
-    
+
     const [showPasswords, setShowPasswords] = useState({
         current: false,
         new: false,
         confirm: false
     });
-    
+
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState('');
     const [messageType, setMessageType] = useState('');
@@ -55,44 +56,44 @@ function Settings() {
             setMessageType('error');
             return false;
         }
-        
+
         if (!credentials.currentPassword) {
             setMessage('Current password is required');
             setMessageType('error');
             return false;
         }
-        
+
         if (!credentials.newPassword) {
             setMessage('New password is required');
             setMessageType('error');
             return false;
         }
-        
+
         if (credentials.newPassword.length < 6) {
             setMessage('New password must be at least 6 characters long');
             setMessageType('error');
             return false;
         }
-        
+
         if (credentials.newPassword !== credentials.confirmPassword) {
             setMessage('New passwords do not match');
             setMessageType('error');
             return false;
         }
-        
+
         return true;
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        
+
         if (!validateForm()) {
             return;
         }
-        
+
         setLoading(true);
         setMessage('');
-        
+
         try {
             // Prepare data for API
             const updateData = {
@@ -103,7 +104,7 @@ function Settings() {
             };
 
             // Call the backend API
-            const response = await fetch('http://localhost/gsm/backend/api/update_profile.php', {
+            const response = await fetch(`${API_BASE_URL}/api/update_profile.php`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -122,9 +123,9 @@ function Settings() {
                     ...result.user,
                     email: result.user.email
                 };
-                
+
                 localStorage.setItem('user', JSON.stringify(updatedUser));
-                
+
                 // Clear password fields
                 setCredentials(prev => ({
                     ...prev,
@@ -132,15 +133,15 @@ function Settings() {
                     newPassword: '',
                     confirmPassword: ''
                 }));
-                
+
                 setMessage('Account credentials updated successfully!');
                 setMessageType('success');
-                
+
             } else {
                 setMessage(result.message || 'Error updating credentials');
                 setMessageType('error');
             }
-            
+
         } catch (error) {
             console.error('Update error:', error);
             setMessage('Error updating credentials. Please try again.');
@@ -158,11 +159,10 @@ function Settings() {
             </div>
 
             {message && (
-                <div className={`mb-6 p-4 rounded-lg ${
-                    messageType === 'success' 
-                        ? 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300' 
+                <div className={`mb-6 p-4 rounded-lg ${messageType === 'success'
+                        ? 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300'
                         : 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300'
-                }`}>
+                    }`}>
                     {message}
                 </div>
             )}
@@ -291,7 +291,7 @@ function Settings() {
                                 <div>
                                     <h4 className="text-sm font-medium text-blue-900 dark:text-blue-100">Security Notice</h4>
                                     <p className="text-sm text-blue-700 dark:text-blue-300 mt-1">
-                                        For security purposes, please ensure your new password is strong and unique. 
+                                        For security purposes, please ensure your new password is strong and unique.
                                         In a production environment, passwords would be properly encrypted and stored securely.
                                     </p>
                                 </div>

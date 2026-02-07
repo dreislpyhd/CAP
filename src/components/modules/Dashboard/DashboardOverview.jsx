@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { API_BASE_URL } from '../../../config';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -40,7 +41,7 @@ const generateColors = (count, alpha = 0.8) => {
     [100, 116, 139], // slate
     [107, 114, 128], // gray
   ];
-  
+
   const colors = [];
   for (let i = 0; i < count; i++) {
     const color = baseColors[i % baseColors.length];
@@ -71,11 +72,11 @@ function DashboardOverview() {
   const fetchDashboardTotals = async () => {
     try {
       // Fetch incident reports
-      const incidentsResponse = await axios.get('http://localhost/gsm/backend/api/incidents.php');
+      const incidentsResponse = await axios.get(`${API_BASE_URL}/api/incidents.php`);
       const incidents = incidentsResponse.data || [];
-      
+
       // Fetch relief beneficiaries from evacuees API (same as reliefBene.jsx)
-      const reliefResponse = await fetch('http://localhost/gsm/backend/api/rgd/evacuees.php', {
+      const reliefResponse = await fetch(`${API_BASE_URL}/api/rgd/evacuees.php`, {
         method: 'GET',
         headers: {
           'Accept': 'application/json',
@@ -83,41 +84,41 @@ function DashboardOverview() {
         },
         credentials: 'include'
       });
-      
+
       const reliefDataText = await reliefResponse.text();
       let reliefData = {};
-      
+
       try {
         reliefData = reliefDataText ? JSON.parse(reliefDataText) : {};
       } catch (e) {
         throw new Error('Invalid server response');
       }
-      
+
       // Filter only approved beneficiaries (same logic as reliefBene.jsx)
-      const approvedBeneficiaries = reliefData.success ? (reliefData.data || []).filter(person => 
+      const approvedBeneficiaries = reliefData.success ? (reliefData.data || []).filter(person =>
         person.status === 'Approved' || person.status === 'approved'
       ) : [];
-      
+
       // Fetch events from TDS.jsx API
-      const eventsResponse = await axios.get('http://localhost/gsm/backend/api/coordination/training.php');
+      const eventsResponse = await axios.get(`${API_BASE_URL}/api/coordination/training.php`);
       const eventsData = eventsResponse.data.success ? (eventsResponse.data.data || []) : [];
-      
+
       // Fetch alerts
-      const alertsResponse = await axios.get('http://localhost/gsm/backend/api/alerts.php');
+      const alertsResponse = await axios.get(`${API_BASE_URL}/api/alerts.php`);
       console.log('Alerts API Response:', alertsResponse.data);
-      
+
       let alerts = [];
       if (alertsResponse.data.success) {
         alerts = alertsResponse.data.alerts || [];
       } else {
         alerts = alertsResponse.data || [];
       }
-      
+
       console.log('Processed alerts:', alerts);
-      
+
       // Process data for charts
       processChartData(incidents, approvedBeneficiaries, eventsData, alerts);
-      
+
       setTotals({
         incidentReports: incidents.length,
         reliefBeneficiaries: approvedBeneficiaries.length,
@@ -134,16 +135,16 @@ function DashboardOverview() {
   const processChartData = (incidents, beneficiaries, events, alerts) => {
     // Process incident trends (last 7 days)
     const incidentTrends = processIncidentTrends(incidents);
-    
+
     // Process relief distribution by zone
     const reliefDistribution = processReliefDistribution(beneficiaries);
-    
+
     // Process alert levels
     const alertLevels = processAlertLevels(alerts);
-    
+
     // Process events status
     const eventsStatus = processEventsStatus(events);
-    
+
     setChartData({
       incidentTrends,
       reliefDistribution,
@@ -155,13 +156,13 @@ function DashboardOverview() {
   const processIncidentTrends = (incidents) => {
     const last7Days = [];
     const incidentCounts = [];
-    
+
     for (let i = 6; i >= 0; i--) {
       const date = new Date();
       date.setDate(date.getDate() - i);
       const dateStr = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
       last7Days.push(dateStr);
-      
+
       const dayIncidents = incidents.filter(incident => {
         if (!incident.created_at) return false;
         const incidentDate = new Date(incident.created_at);
@@ -169,62 +170,62 @@ function DashboardOverview() {
       });
       incidentCounts.push(dayIncidents.length);
     }
-    
+
     return { labels: last7Days, data: incidentCounts };
   };
 
   const processReliefDistribution = (beneficiaries) => {
     const zoneCounts = {};
-    
+
     beneficiaries.forEach(beneficiary => {
       const zone = beneficiary.zone || 'Unknown';
       zoneCounts[zone] = (zoneCounts[zone] || 0) + 1;
     });
-    
+
     const labels = Object.keys(zoneCounts);
     const data = Object.values(zoneCounts);
-    
+
     return { labels, data };
   };
 
   const processAlertLevels = (alerts) => {
     console.log('Processing alert levels for alerts:', alerts);
-    
+
     const levelCounts = {};
-    
+
     alerts.forEach(alert => {
       const level = (alert.level || 'unknown').toLowerCase().trim();
       console.log('Alert level:', level, 'for alert:', alert.name);
-      
+
       levelCounts[level] = (levelCounts[level] || 0) + 1;
     });
-    
+
     console.log('Final level counts:', levelCounts);
-    
+
     // Convert to proper case for display
-    const labels = Object.keys(levelCounts).map(level => 
+    const labels = Object.keys(levelCounts).map(level =>
       level.charAt(0).toUpperCase() + level.slice(1)
     );
     const data = Object.values(levelCounts);
-    
+
     return { labels, data };
   };
 
   const processEventsStatus = (events) => {
     const statusCounts = {};
-    
+
     events.forEach(event => {
       const status = event.status || 'Unknown';
       statusCounts[status] = (statusCounts[status] || 0) + 1;
     });
-    
+
     const labels = Object.keys(statusCounts);
     const data = Object.values(statusCounts);
-    
+
     return { labels, data };
   };
 
-  
+
 
   if (loading) {
     return (
@@ -244,7 +245,7 @@ function DashboardOverview() {
     totalAlerts: (totals.totalAlerts || 0)
   };
 
-  
+
 
   if (loading) {
     return (
@@ -262,7 +263,7 @@ function DashboardOverview() {
         <h1 className="text-3xl font-bold mb-2">Dashboard Overview</h1>
         <p className="text-gray-600 dark:text-gray-400">System statistics and totals</p>
       </div>
-      
+
       {/* Dashboard Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         {/* Incident Reports */}
@@ -496,7 +497,7 @@ function DashboardOverview() {
 
       </div>
 
-      
+
     </div>
   );
 }

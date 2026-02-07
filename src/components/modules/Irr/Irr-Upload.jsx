@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { AlertTriangle, X, Image as ImageIcon, Download as DownloadIcon, Clock, MapPin, FileText, User, RefreshCw, CheckCircle, Search, Filter } from "lucide-react";
+import { API_BASE_URL } from '../../../config';
 
 const AdminIncidentPanel = () => {
   const [incidents, setIncidents] = useState([]);
@@ -15,7 +16,7 @@ const AdminIncidentPanel = () => {
   const fetchIncidents = async () => {
     try {
       setIsLoading(true);
-      const response = await fetch('http://localhost/gsm/backend/api/incidents.php', {
+      const response = await fetch(`${API_BASE_URL}/api/incidents.php`, {
         method: 'GET',
         headers: {
           'Accept': 'application/json',
@@ -87,7 +88,7 @@ const AdminIncidentPanel = () => {
   // Handle status update
   const updateIncidentStatus = async (incidentId, newStatus) => {
     try {
-      const response = await fetch(`http://localhost/gsm/backend/api/incidents.php?id=${incidentId}`, {
+      const response = await fetch(`${API_BASE_URL}/api/incidents.php?id=${incidentId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -112,19 +113,19 @@ const AdminIncidentPanel = () => {
   const closeIncidentModal = () => setSelectedIncidentIndex(null);
 
   const formatDate = (dateString) => {
-    const options = { 
-      year: 'numeric', 
-      month: 'short', 
+    const options = {
+      year: 'numeric',
+      month: 'short',
       day: 'numeric',
-      hour: '2-digit', 
-      minute: '2-digit' 
+      hour: '2-digit',
+      minute: '2-digit'
     };
     return new Date(dateString).toLocaleString(undefined, options);
   };
 
   const getStatusBadge = (status) => {
     const baseClasses = 'px-2 py-1 rounded-full text-xs font-medium';
-    
+
     switch (status) {
       case 'Pending':
         return `${baseClasses} bg-yellow-100 text-yellow-800`;
@@ -139,7 +140,7 @@ const AdminIncidentPanel = () => {
 
   const getStatusBadgeWithIcon = (status) => {
     const baseClasses = 'px-3 py-1 rounded-full text-xs font-medium flex items-center w-fit';
-    
+
     switch (status) {
       case 'Pending':
         return (
@@ -208,7 +209,7 @@ const AdminIncidentPanel = () => {
         </head>
         <body>
           <div class="logo-container">
-            <img src="http://localhost/gsm/GSM_logo.png" alt="GSM Logo" class="logo" />
+            <img src="${API_BASE_URL}/../GSM_logo.png" alt="GSM Logo" class="logo" />
           </div>
           
           <div class="header">
@@ -284,7 +285,7 @@ const AdminIncidentPanel = () => {
     // Create a blob from the HTML content
     const blob = new Blob([reportContent], { type: 'text/html' });
     const url = URL.createObjectURL(blob);
-    
+
     // Create a temporary link and trigger download
     const link = document.createElement('a');
     link.href = url;
@@ -292,7 +293,7 @@ const AdminIncidentPanel = () => {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    
+
     // Clean up the URL
     URL.revokeObjectURL(url);
   };
@@ -333,7 +334,7 @@ const AdminIncidentPanel = () => {
             <AlertTriangle className="h-8 w-8 text-gray-400" />
           </div>
         </div>
-        
+
         <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow">
           <div className="flex items-center justify-between">
             <div>
@@ -343,7 +344,7 @@ const AdminIncidentPanel = () => {
             <Clock className="h-8 w-8 text-yellow-400" />
           </div>
         </div>
-        
+
         <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow">
           <div className="flex items-center justify-between">
             <div>
@@ -353,7 +354,7 @@ const AdminIncidentPanel = () => {
             <RefreshCw className="h-8 w-8 text-blue-400" />
           </div>
         </div>
-        
+
         <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow">
           <div className="flex items-center justify-between">
             <div>
@@ -459,8 +460,8 @@ const AdminIncidentPanel = () => {
               </thead>
               <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                 {filteredIncidents.map((incident) => (
-                  <tr 
-                    key={incident.id} 
+                  <tr
+                    key={incident.id}
                     className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors cursor-pointer"
                     onClick={() => {
                       const index = incidents.findIndex(i => i.id === incident.id);
@@ -548,11 +549,11 @@ const IncidentViewModal = ({ incident, onClose, onStatusUpdate, onImageClick }) 
   };
 
   const formatDate = (dateString) => {
-    const options = { 
-      year: 'numeric', 
-      month: 'long', 
+    const options = {
+      year: 'numeric',
+      month: 'long',
       day: 'numeric',
-      hour: '2-digit', 
+      hour: '2-digit',
       minute: '2-digit',
       hour12: true
     };
@@ -659,7 +660,7 @@ const IncidentViewModal = ({ incident, onClose, onStatusUpdate, onImageClick }) 
                       <div key={fileIdx} className="border rounded-lg overflow-hidden bg-white dark:bg-gray-600">
                         {file.type.startsWith('image/') ? (
                           <div className="relative group">
-                            <div 
+                            <div
                               className="w-full h-40 overflow-hidden cursor-pointer"
                               onClick={() => onImageClick(file)}
                             >
@@ -768,7 +769,7 @@ const ImageViewerModal = ({ image, onClose }) => {
         >
           <X className="h-6 w-6" />
         </button>
-        
+
         {/* Image Container */}
         <div className="flex items-center justify-center h-full">
           <img
@@ -781,7 +782,7 @@ const ImageViewerModal = ({ image, onClose }) => {
             }}
           />
         </div>
-        
+
         {/* Image Info */}
         <div className="absolute bottom-4 left-4 right-4 bg-white bg-opacity-90 rounded-lg p-3 shadow-lg">
           <p className="text-sm font-medium text-gray-800 truncate">{image.name}</p>
@@ -789,7 +790,7 @@ const ImageViewerModal = ({ image, onClose }) => {
             {(image.size / 1024).toFixed(1)} KB • {image.type}
           </p>
         </div>
-        
+
         {/* Download Button */}
         <a
           href={image.url}
