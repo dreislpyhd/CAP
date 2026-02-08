@@ -88,9 +88,14 @@ class IncidentsAPI {
                 if (isset($incident['files'])) {
                     $files = json_decode($incident['files'], true);
                     if (is_array($files)) {
+                        // Determine base URL dynamically
+                        $protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http';
+                        $host = $_SERVER['HTTP_HOST'];
+                        $baseUrl = $protocol . '://' . $host . '/backend/uploads/';
+                        
                         // Add URL to each file
                         foreach ($files as &$file) {
-                            $file['url'] = 'http://localhost/gsm/backend/uploads/' . $file['path'];
+                            $file['url'] = $baseUrl . $file['path'];
                         }
                     }
                     $incident['files'] = $files;
