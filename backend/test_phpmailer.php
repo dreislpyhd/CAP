@@ -3,6 +3,8 @@
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
+use PHPMailer\PHPMailer\PHPMailer;
+
 echo "Testing PHPMailer autoload...\n\n";
 
 // Check if vendor directory exists
@@ -26,7 +28,6 @@ try {
 
 // Try to use PHPMailer
 try {
-    use PHPMailer\PHPMailer\PHPMailer;
     $mail = new PHPMailer(true);
     echo "✓ PHPMailer class loaded successfully!\n";
     echo "PHPMailer version: " . PHPMailer::VERSION . "\n";

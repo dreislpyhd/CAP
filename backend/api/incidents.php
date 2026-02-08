@@ -56,7 +56,7 @@ class IncidentsAPI {
             // Build query based on user role
             if ($isAdmin) {
                 // Admin can see all incidents with user information
-                $query = "SELECT i.*, u.full_name as reporter_name, u.email as reporter_email 
+                $query = "SELECT i.*, COALESCE(u.full_name, 'Anonymous User') as reporter_name, u.email as reporter_email 
                          FROM incidents i 
                          LEFT JOIN users u ON i.user_id = u.id 
                          $orderClause";
@@ -64,7 +64,7 @@ class IncidentsAPI {
                 $stmt->execute();
             } elseif ($userId) {
                 // Regular user can only see their own incidents
-                $query = "SELECT i.*, u.full_name as reporter_name, u.email as reporter_email 
+                $query = "SELECT i.*, COALESCE(u.full_name, 'Anonymous User') as reporter_name, u.email as reporter_email 
                          FROM incidents i 
                          LEFT JOIN users u ON i.user_id = u.id 
                          WHERE i.user_id = ? 
@@ -73,7 +73,7 @@ class IncidentsAPI {
                 $stmt->execute([$userId]);
             } else {
                 // No user_id and not admin - return all incidents for notification system (public access)
-                $query = "SELECT i.*, u.full_name as reporter_name, u.email as reporter_email 
+                $query = "SELECT i.*, COALESCE(u.full_name, 'Anonymous User') as reporter_name, u.email as reporter_email 
                          FROM incidents i 
                          LEFT JOIN users u ON i.user_id = u.id 
                          $orderClause";
@@ -85,17 +85,28 @@ class IncidentsAPI {
             
             // Decode JSON fields and format file data
             foreach ($incidents as &$incident) {
+                // Ensure reporter_name is never null
+                if (empty($incident['reporter_name'])) {
+                    $incident['reporter_name'] = 'Anonymous User';
+                }
+                
                 if (isset($incident['files'])) {
                     $files = json_decode($incident['files'], true);
                     if (is_array($files)) {
                         // Determine base URL dynamically
                         $protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http';
                         $host = $_SERVER['HTTP_HOST'];
-                        $baseUrl = $protocol . '://' . $host . '/backend/uploads/';
+                        // Construct base URL - handle both development and production
+                        $scriptPath = dirname($_SERVER['SCRIPT_NAME']);
+                        // Remove /api from the path if present
+                        $basePath = str_replace('/api', '', $scriptPath);
+                        $baseUrl = $protocol . '://' . $host . $basePath . '/uploads/';
                         
                         // Add URL to each file
                         foreach ($files as &$file) {
-                            $file['url'] = $baseUrl . $file['path'];
+                            if (isset($file['path'])) {
+                                $file['url'] = $baseUrl . $file['path'];
+                            }
                         }
                     }
                     $incident['files'] = $files;
