@@ -24,7 +24,10 @@ require_once __DIR__ . '/../../config/db_connection.php';
 // Database connection function
 function getConnection() {
     $database = new Database();
-    return $database->getConnection();
+    $conn = $database->getConnection();
+    // Set charset to utf8mb4 to support emojis
+    $conn->exec("set names utf8mb4");
+    return $conn;
 }
 
 class TrainingAPI {
