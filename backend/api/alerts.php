@@ -18,15 +18,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 require_once __DIR__ . '/../utils/session_guard.php';
 
 // Database configuration
-$servername = "localhost";
-$username = "root";
-$password = "";
-$dbname = "gsm_db";
+require_once __DIR__ . '/../config/db_connection.php';
 
 try {
-    $conn = new PDO("mysql:host=$servername;dbname=$dbname", $username, $password);
-    $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-} catch(PDOException $e) {
+    $database = new Database();
+    $conn = $database->getConnection();
+    
+    if (!$conn) {
+        throw new Exception('Database connection failed');
+    }
+} catch(Exception $e) {
     http_response_code(500);
     echo json_encode(['error' => 'Database connection failed: ' . $e->getMessage()]);
     exit;
