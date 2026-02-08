@@ -4,7 +4,7 @@ use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
 function sendOTP($email, $otp) {
-    $mail = new PHPMailer(true);
+    $mail = new \PHPMailer\PHPMailer\PHPMailer(true);
 
     try {
         // Server settings
@@ -13,7 +13,7 @@ function sendOTP($email, $otp) {
         $mail->SMTPAuth   = true;
         $mail->Username   = 'drrmgsm@gmail.com';
         $mail->Password   = 'sxqrwlvxrvphimil';
-        $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+        $mail->SMTPSecure = \PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_STARTTLS;
         $mail->Port       = 587;
 
         // Recipients
@@ -28,7 +28,7 @@ function sendOTP($email, $otp) {
 
         $mail->send();
         return true;
-    } catch (Exception $e) {
+    } catch (\PHPMailer\PHPMailer\Exception $e) {
         error_log("Error sending OTP email: " . $e->getMessage());
         return false;
     }
