@@ -27,7 +27,7 @@ function Sidebar({ collapsed, onPageChange, activeItem, onLogout }) {
                 <div className='p-6'>
                     <div className='flex items-center space-x-3'>
                         <div className='w-10 h-10 flex items-center justify-center'>
-                            <img src={gsmLogo} alt="GSM Logo" className='w-10 h-10 object-contain' />
+                            <img src={gsmLogo} alt="AGAP Logo" className='w-10 h-10 object-contain' />
                         </div>
 
                         {!collapsed && (
@@ -48,10 +48,9 @@ function Sidebar({ collapsed, onPageChange, activeItem, onLogout }) {
                             <div key={item.id}>
                                 <button
                                     className={`w-full flex justify-between items-center p-2 rounded-xl 
-                                    transition-all duration-200 ${
-                                        (activeItem === item.id || (item.subItems && item.subItems.some(sub => sub.id === activeSubItem)))
+                                    transition-all duration-200 ${(activeItem === item.id || (item.subItems && item.subItems.some(sub => sub.id === activeSubItem)))
                                             ? 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-200 font-semibold' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 dark:hover:text-slate-300'
-                                    }`}
+                                        }`}
                                     onClick={() => {
                                         if (item.subItems) {
                                             toggleExpanded(item.id);
@@ -68,29 +67,26 @@ function Sidebar({ collapsed, onPageChange, activeItem, onLogout }) {
                                         )}
                                     </div>
                                     {!collapsed && item.subItems && (
-                                        <ChevronDown className={`w-4 h-4 text-slate-500 transition-transform duration-300 ${
-                                            expandedItem.has(item.id) ? 'rotate-180' : 'rotate-0'
-                                        }`} />
+                                        <ChevronDown className={`w-4 h-4 text-slate-500 transition-transform duration-300 ${expandedItem.has(item.id) ? 'rotate-180' : 'rotate-0'
+                                            }`} />
                                     )}
                                 </button>
 
                                 {!collapsed && item.subItems && (
-                                    <div 
-                                        className={`ml-8 mt-2 space-y-1 border-l-1 border-slate-300 overflow-hidden transition-all duration-300 ease-in-out ${
-                                            expandedItem.has(item.id) 
-                                                ? 'max-h-96 opacity-100' 
+                                    <div
+                                        className={`ml-8 mt-2 space-y-1 border-l-1 border-slate-300 overflow-hidden transition-all duration-300 ease-in-out ${expandedItem.has(item.id)
+                                                ? 'max-h-96 opacity-100'
                                                 : 'max-h-0 opacity-0'
-                                        }`}
+                                            }`}
                                     >
                                         {item.subItems.map((subitem) => {
                                             return (
                                                 <button
                                                     key={subitem.id}
-                                                    className={`w-full ml-2 text-sm text-left p-2 rounded-lg transition-all duration-200 ${
-                                                        activeSubItem === subitem.id
+                                                    className={`w-full ml-2 text-sm text-left p-2 rounded-lg transition-all duration-200 ${activeSubItem === subitem.id
                                                             ? 'bg-blue-50 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300 font-semibold'
                                                             : 'text-slate-700 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 dark:hover:text-slate-300'
-                                                    }`}
+                                                        }`}
                                                     onClick={() => {
                                                         setActiveSubItem(subitem.id);
                                                         if (onPageChange) onPageChange(subitem.id);
@@ -138,11 +134,11 @@ function Sidebar({ collapsed, onPageChange, activeItem, onLogout }) {
                                 </p>
                             </div>
                         </div>
-                        
+
                         <p className="text-gray-700 dark:text-gray-300 mb-6">
                             Are you sure you want to sign out? You will need to login again to access the system.
                         </p>
-                        
+
                         <div className="flex justify-end space-x-3">
                             <button
                                 onClick={() => setShowLogoutModal(false)}

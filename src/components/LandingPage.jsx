@@ -1,11 +1,11 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { 
-    LayoutDashboard, 
-    Landmark, 
-    TreeDeciduous, 
-    Building, 
-    Droplets, 
+import {
+    LayoutDashboard,
+    Landmark,
+    TreeDeciduous,
+    Building,
+    Droplets,
     CandlestickChart,
     Shield,
     ArrowRight
@@ -13,7 +13,7 @@ import {
 
 const LandingPage = ({ onEnterSystem }) => {
     const navigate = useNavigate();
-    
+
     const features = [
         {
             icon: LayoutDashboard,
